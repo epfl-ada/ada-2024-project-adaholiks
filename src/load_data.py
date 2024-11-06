@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 
 
 
-from Project.include.article import Article
+from include.article import Article
 
 
 
