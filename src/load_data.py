@@ -37,6 +37,7 @@ def decode_df_unicode(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_articles_into_df(
     articles_file_path: str = "Data/wikispeedia_paths-and-graph/articles.tsv",
+    do_decode: bool = True
 ) -> pd.DataFrame:
     """
     Load the "articles.tsv" file into a Pandas DF
@@ -54,7 +55,9 @@ def load_articles_into_df(
     articles = pd.read_csv(
         articles_file_path, sep="\t", comment="#", names=["article"], header=None
     )
-    articles = decode_df_unicode(articles)
+
+    if do_decode:
+        articles = decode_df_unicode(articles)
 
     return articles
 
