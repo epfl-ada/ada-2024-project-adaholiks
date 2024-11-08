@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 
 print(sys.path)
 
-from load_data import load_article_objects
+from src.load_data import load_article_objects
 import networkx as nx
 import matplotlib.pyplot as plt
 from pyvis.network import Network
@@ -41,6 +41,8 @@ for article_name, article_obj in articles.items():
 # Choose a layout for the graph (spring layout is often a good default)
 pos = nx.spring_layout(G, k=0.15, iterations=20)
 
+
+'''
 # Create the figure and plot the graph
 plt.figure(figsize=(12, 12))  # Adjust the figure size based on the graph size
 
@@ -55,3 +57,4 @@ print("created network")
 net.from_nx(G)  # Load NetworkX graph into pyvis
 print("loaded graph")
 net.show("graph.html")  # This will open a zoomable, interactive graph in your browser
+'''
