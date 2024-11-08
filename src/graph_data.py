@@ -39,16 +39,16 @@ for article_name, article_obj in articles.items():
 
 
 # Choose a layout for the graph (spring layout is often a good default)
-#pos = nx.spring_layout(G, k=0.15, iterations=20)
+pos = nx.spring_layout(G, k=0.15, iterations=20)
 
 # Create the figure and plot the graph
-#plt.figure(figsize=(12, 12))  # Adjust the figure size based on the graph size
+plt.figure(figsize=(12, 12))  # Adjust the figure size based on the graph size
 
 # Draw the nodes with labels and edges
-#nx.draw(G, pos, with_labels=True, node_size=500, node_color="skyblue", font_size=8, font_weight="bold", edge_color="gray")
+nx.draw(G, pos, with_labels=False, node_size=50, node_color="skyblue", font_size=8, font_weight="bold", edge_color="gray")
 
 # Display the graph
-#plt.show()
+plt.show()
 
 #net = Network(notebook=True, cdn_resources='remote', height="750px", width="100%")
 #print("created network")
