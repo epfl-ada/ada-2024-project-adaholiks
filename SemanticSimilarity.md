@@ -8,7 +8,9 @@ First, let's compute the embeddings. We can follow a HuggingFace tutorial on gen
 
 ## Analyzing the Embeddings
 
-There are lots of tools to visualize and analyze embeddings. In order to extract meaningful representations, a common tactic is to reduce the dimensionality of the embeddings. The two main tools for this are PCA and T-SNE. We can use both of these via scikit-learn. For now, we just want to get a feel for the data. Let's use tensorflow's Embedding Projector tool. This tool can be hosted locally or used in a browser. 
+There are lots of tools to visualize and analyze embeddings. In order to extract meaningful representations, a common tactic is to reduce the dimensionality of the embeddings. The two main tools for this are PCA and T-SNE. 
+See [here](https://distill.pub/2016/misread-tsne/) for a great overview on T-SNE.
+We can use both of these via scikit-learn. For now, we just want to get a feel for the data. Let's use tensorflow's Embedding Projector tool. This tool can be hosted locally or used in a browser. 
 
 ### TF's Embedding Projector
 
