@@ -36,9 +36,10 @@ In this section, we concentrate on the player data and analyze the paths taken t
   
 
 **Next steps**
+
 Thus far, we have only really considered one aspect of the paths in order to define good articles. That is the difference in the path length taken and shortest distance. However, there are a few other aspects that we can potentially also consider. For example, when articles are overrepresented in unfinished paths or associated with a lot of back clicks, the ‘goodness’ score should be lower. A more sophisticated approach could thus look like this:
-- **Scoring function**: `alpha*dist_diff + beta*unfinished_penalty + gamma*back_click_unfinished`. The parameters can be determined through machine learning (e.g regression).
-- We noticed that a few start-target pairs have over a thousand played paths. On a subset of articles that show up in these paths, we could have much more robust scoring… Can also be used to train the weights of the above…
+- **Scoring function**: `alpha*dist_diff + beta*unfinished_penalty + gamma*back_click_unfinished`. The parameters can be tuned through machine learning (e.g regression).
+- We have also noticed that certain start target pairs have over a thousand played paths. This could be used to conduct much more robust scoring of the articles in question and potentially to train the aforementioned weights.
 
 ### Part 4 - Analysis of the Results Found and Correlation with Attributes
 Extracted attributes from part 2 such as incoming links, outgoing links, article length, and hyperlink density can be taken into account and correlated with our article rankings from part 3. Other attributes such as category centrality, position of hyperlinks, and semantic distance can also be extracted and correlated with path success metrics.
