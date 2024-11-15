@@ -32,7 +32,7 @@ In this section, we concentrate on the player data and analyze the paths taken t
   We first look at articles that come up the most in the played path data after outlier removal. This serves as comparison for the other approaches.
   
 - **Weighted approach by difference to optimal length**  
-  The idea is to assign each played path a weight based on the difference between its length and the shortest length from the start to the target article. An article goodness score can then be computed using either a weighted average, or a sum of centred averages.
+  The idea is to assign each played path a weight based on the difference between its length and the shortest length from the start to the target article. An article goodness score is then be computed using both a weighted average, or a sum of centred averages.
   
 
 **Next steps**
