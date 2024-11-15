@@ -31,17 +31,18 @@ In this section, we concentrate on the player data and analyze the paths taken t
 - **Naive approach**  
   We first look at articles that come up the most in filtered data (explain here what filtered data is). This is of course a naive approach and will serve as a comparison for other metrics.
   
-- **Weighted approach by difference to optimal length**
-  The idea is to define a asign each played path a weight based on the difference of its length and shortest length from start to target article. An article goodness score can then be computing using either a weighted average:
-  $$
+- **Weighted approach by difference to optimal length**  
+  The idea is to assign each played path a weight based on the difference between its length and the shortest length from the start to the target article. An article goodness score can then be computed using either a weighted average:
+  
+  \[
   \text{avg\_weight} = \frac{\sum \text{weight}}{n\_appearances}
-  $$
+  \]
   
   or a centered weighted sum:
   
-  $$
+  \[
   \sum (\text{weight} - \text{avg\_weight})
-  $$
+  \]
 
 Next steps: Thus far, we have only really considered one aspect of the paths in order to define good articles. That is the difference in the path length taken and shortest distance. However, there are a few other aspects that we can potentially also consider. For example, when articles are overrepresented in unfinished paths or associated with a lot of back clicks, the ‘goodness’ score should be lower. A more sophisticated approach could thus look like this:
 - **Scoring function**: `alpha*dist_diff + beta*unfinished_penalty + gamma*back_click_unfinished`. The parameters can be determined through machine learning (e.g regression).
