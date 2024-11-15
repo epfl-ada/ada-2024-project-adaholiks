@@ -29,13 +29,14 @@ In this phase, we identify the theoretically "best" articles in the network usin
 ### Part 3 - Game-Based Top Articles
 In this section, we concentrate on the player data and analyze the paths taken to determine the most valued articles by the players in actual gameplay. We quantified the level of importance by using various approaches, from simple to more complex:
 - **Naive approach**  
-  We first look at articles that come up the most in filtered data (explain here what filtered data is). This is of course a naive approach and will serve as a comparison for other metrics.
+  We first look at articles that come up the most in the played path data after outlier removal. This serves as comparison for the other approaches.
   
 - **Weighted approach by difference to optimal length**  
-  The idea is to assign each played path a weight based on the difference between its length and the shortest length from the start to the target article. An article goodness score can then be computed using either a weighted average:
+  The idea is to assign each played path a weight based on the difference between its length and the shortest length from the start to the target article. An article goodness score can then be computed using either a weighted average, or a sum of centred averages.
   
 
-Next steps: Thus far, we have only really considered one aspect of the paths in order to define good articles. That is the difference in the path length taken and shortest distance. However, there are a few other aspects that we can potentially also consider. For example, when articles are overrepresented in unfinished paths or associated with a lot of back clicks, the ‘goodness’ score should be lower. A more sophisticated approach could thus look like this:
+**Next steps**
+Thus far, we have only really considered one aspect of the paths in order to define good articles. That is the difference in the path length taken and shortest distance. However, there are a few other aspects that we can potentially also consider. For example, when articles are overrepresented in unfinished paths or associated with a lot of back clicks, the ‘goodness’ score should be lower. A more sophisticated approach could thus look like this:
 - **Scoring function**: `alpha*dist_diff + beta*unfinished_penalty + gamma*back_click_unfinished`. The parameters can be determined through machine learning (e.g regression).
 - We noticed that a few start-target pairs have over a thousand played paths. On a subset of articles that show up in these paths, we could have much more robust scoring… Can also be used to train the weights of the above…
 
