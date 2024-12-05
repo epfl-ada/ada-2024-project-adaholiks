@@ -155,7 +155,7 @@ def calculate_avg_article_weights(df, count_cutoff=30, scaling=None):
             - 'simplified_path': List of articles in the path
             - 'simplified_path_length': Length of the simplified path
             - 'distance': Distance associated with the path
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', and 'robust' or None
+        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None
         count_cutoff (int): Minimum number of appearances for an article to be considered
 
     Returns:
@@ -201,8 +201,6 @@ def calculate_avg_article_weights(df, count_cutoff=30, scaling=None):
             scaler = MinMaxScaler()
         elif scaling == 'standard':
             scaler = StandardScaler()
-        elif scaling == 'robust':
-            scaler = RobustScaler()
 
         avg_article_weight_df[scaling] = scaler.fit_transform(avg_article_weight_df[['weighted_avg']])
 
@@ -225,7 +223,7 @@ def calculate_sum_article_cweights(df, count_cutoff=30, scaling=None):
             - 'simplified_path': List of articles in the path
             - 'simplified_path_length': Length of the simplified path
             - 'distance': Distance associated with the path
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', and 'robust' or None
+        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None
         count_cutoff (int): Minimum number of appearances for an article to be considered
 
     Returns:
@@ -274,8 +272,6 @@ def calculate_sum_article_cweights(df, count_cutoff=30, scaling=None):
             scaler = MinMaxScaler()
         elif scaling == 'standard':
             scaler = StandardScaler()
-        elif scaling == 'robust':
-            scaler = RobustScaler()
 
         sum_article_cweight_df[scaling] = scaler.fit_transform(sum_article_cweight_df[['weighted_sum']])
 
@@ -342,12 +338,10 @@ def calculate_unfinished_ratios(in_df, count_cutoff=30, scaling=None):
     if scaling is not None:
         if scaling == 'minmax':
             scaler = MinMaxScaler()
+            ratio_df[scaling] = scaler.fit_transform(1-ratio_df[['unfinished_ratio']]) # want the finished ratio, so bigger is better
         elif scaling == 'standard':
             scaler = StandardScaler()
-        elif scaling == 'robust':
-            scaler = RobustScaler()
-        
-        ratio_df[scaling] = -scaler.fit_transform(ratio_df[['unfinished_ratio']])
+            ratio_df[scaling] = -scaler.fit_transform(ratio_df[['unfinished_ratio']]) # minus sign so bigger is better
 
     #print(f"Number of unique articles: {len(article_counts)}")
     print(f"Ratio of unfinished over finished paths: {1-df['finished'].mean()}")
@@ -420,12 +414,10 @@ def calculate_detour_ratios(in_df, count_cutoff=1, scaling=None):
         # normalize
         if scaling == 'minmax':
             scaler = MinMaxScaler()
+            detour_df[scaling] = scaler.fit_transform(1-detour_df[['detour_ratio']])
         elif scaling == 'standard':
             scaler = StandardScaler()
-        elif scaling == 'robust':
-            scaler = RobustScaler()
-
-        detour_df[scaling] = -scaler.fit_transform(detour_df[['detour_ratio']])
+            detour_df[scaling] = -scaler.fit_transform(detour_df[['detour_ratio']])
 
     print(f"Number of unique articles after detour ratio calculation: {len(detour_df)}")
 
@@ -444,7 +436,7 @@ def calc_avg_article_time(df, count_cutoff=30, scaling=None):
             - 'simplified_path': List of articles in the path
             - 'durationInSec': Duration associated with the path
         count_cutoff (int): Minimum number of appearances for an article to be considered
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', and 'robust' or None.
+        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None.
 
     Returns:
         pd.DataFrame: A DataFrame containing:
@@ -484,12 +476,10 @@ def calc_avg_article_time(df, count_cutoff=30, scaling=None):
         # Normalize the average speed
         if scaling == 'minmax':
             scaler = MinMaxScaler()
+            avg_article_speed_df[scaling] = scaler.fit_transform(1-avg_article_speed_df[['avg_speed']])
         elif scaling == 'standard':
             scaler = StandardScaler()
-        elif scaling == 'robust':
-            scaler = RobustScaler()
-        
-        avg_article_speed_df[scaling] = -scaler.fit_transform(avg_article_speed_df[['avg_speed']])
+            avg_article_speed_df[scaling] = -scaler.fit_transform(avg_article_speed_df[['avg_speed']])
 
     print(f"Number of unique articles after time calc: {avg_article_speed_df.shape[0]}")
 
@@ -497,7 +487,8 @@ def calc_avg_article_time(df, count_cutoff=30, scaling=None):
 
 def calc_avg_article_speed(df, count_cutoff=30, scaling=None):
     """
-    Calculate the average speed of articles from a DataFrame containing path information.
+    Calculate the average speed and average path length of articles 
+    from a DataFrame containing path information.
 
     Parameters:
         df (pd.DataFrame): Input DataFrame with the following columns:
@@ -505,42 +496,46 @@ def calc_avg_article_speed(df, count_cutoff=30, scaling=None):
             - 'durationInSec': Duration associated with the path
             - 'full_path_length': Total length of the path
         count_cutoff (int): Minimum number of appearances for an article to be considered.
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', and 'robust' or None.
+        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None.
 
     Returns:
         pd.DataFrame: A DataFrame containing:
             - 'article': Article name.
             - 'n_appearances': Number of times the article appeared in paths.
             - 'avg_speed': Average speed of the article.
+            - 'avg_path_length': Average full_path_length of the article.
     """
     # Copy and preprocess the DataFrame
     df = df[['simplified_path', 'durationInSec', 'full_path_length']].copy()
 
     # Calculate the speed for each path
-    df['speed'] = df['durationInSec'] / df['full_path_length']
+    df['speed'] = df['full_path_length'] / df['durationInSec']
 
     # Remove the start and end articles from the simplified path
     df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1])  # Adjust as per your input structure
 
     # Initialize an empty DataFrame to store results
-    avg_article_speed_df = pd.DataFrame(columns=['article', 'n_appearances', 'avg_speed'])
+    avg_article_speed_df = pd.DataFrame(columns=['article', 'n_appearances', 'avg_speed', 'avg_path_length'])
     avg_article_speed_df.set_index('article', inplace=True)
 
-    # Iterate through each row to calculate speeds
+    # Iterate through each row to calculate speeds and path lengths
     for _, row in df.iterrows():
         speed = row['speed']
+        path_length = row['full_path_length']
         simplified_path = row['simplified_path']
 
         for article in simplified_path:
             if article not in avg_article_speed_df.index:
-                avg_article_speed_df.loc[article] = [0, 0]
+                avg_article_speed_df.loc[article] = [0, 0, 0]
 
-            # Update counts and sums
+            # Update counts, speed sums, and path length sums
             avg_article_speed_df.at[article, 'n_appearances'] += 1
             avg_article_speed_df.at[article, 'avg_speed'] += speed
+            avg_article_speed_df.at[article, 'avg_path_length'] += path_length
 
-    # Calculate the average speed by dividing sum by counts
+    # Calculate the averages
     avg_article_speed_df['avg_speed'] = avg_article_speed_df['avg_speed'] / avg_article_speed_df['n_appearances']
+    avg_article_speed_df['avg_path_length'] = avg_article_speed_df['avg_path_length'] / avg_article_speed_df['n_appearances']
 
     # Filter out articles that appear less than the cutoff
     avg_article_speed_df = avg_article_speed_df[avg_article_speed_df['n_appearances'] >= count_cutoff]
@@ -549,14 +544,12 @@ def calc_avg_article_speed(df, count_cutoff=30, scaling=None):
         # Normalize the average speed
         if scaling == 'minmax':
             scaler = MinMaxScaler()
+            avg_article_speed_df[scaling] = scaler.fit_transform(avg_article_speed_df[['avg_speed']])
         elif scaling == 'standard':
             scaler = StandardScaler()
-        elif scaling == 'robust':
-            scaler = RobustScaler()
-        
-        avg_article_speed_df[scaling] = -scaler.fit_transform(avg_article_speed_df[['avg_speed']])
+            avg_article_speed_df[scaling] = scaler.fit_transform(avg_article_speed_df[['avg_speed']])
 
-    print(f"Number of unique articles after speed calc: {avg_article_speed_df.shape[0]}")
+    print(f"Number of unique articles after speed and path length calc: {avg_article_speed_df.shape[0]}")
 
     return avg_article_speed_df  # Return the updated DataFrame
 
@@ -573,7 +566,7 @@ def calc_sum_article_cspeed(df, count_cutoff=30, scaling=None):
             - 'durationInSec': Duration associated with the path
             - 'full_path_length': Total length of the path
         count_cutoff (int): Minimum number of appearances for an article to be considered.
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', and 'robust' or None.
+        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None.
 
     Returns:
         pd.DataFrame: A DataFrame containing:
@@ -585,10 +578,10 @@ def calc_sum_article_cspeed(df, count_cutoff=30, scaling=None):
     df = df[['simplified_path', 'durationInSec', 'full_path_length']].copy()
 
     # Calculate the speed for each path
-    df['speed'] = df['durationInSec'] / df['full_path_length']
+    df['speed'] = df['full_path_length'] / df['durationInSec']
 
     # Calculate the mean speed
-    article_mean_speed = (df['speed'] * df['full_path_length']).sum() / df['full_path_length'].sum()
+    article_mean_speed = (df['speed'] * (df['full_path_length']-1)).sum() / (df['full_path_length']-1).sum()
 
     # Center the speeds by subtracting the mean
     df['centered_speed'] = df['speed'] - article_mean_speed
@@ -620,12 +613,10 @@ def calc_sum_article_cspeed(df, count_cutoff=30, scaling=None):
         # Normalize the sum of centered speeds
         if scaling == 'minmax':
             scaler = MinMaxScaler()
+            sum_cspeed_df[scaling] = scaler.fit_transform(sum_cspeed_df[['sum_cspeed']])
         elif scaling == 'standard':
             scaler = StandardScaler()
-        elif scaling == 'robust':
-            scaler = RobustScaler()
-        
-        sum_cspeed_df[scaling] = -scaler.fit_transform(sum_cspeed_df[['sum_cspeed']])
+            sum_cspeed_df[scaling] = scaler.fit_transform(sum_cspeed_df[['sum_cspeed']])
     
     print(f"Number of unique articles after speed calc: {sum_cspeed_df.shape[0]}")
 
