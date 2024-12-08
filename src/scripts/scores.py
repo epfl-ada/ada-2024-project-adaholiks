@@ -1,6 +1,7 @@
 
 import pandas as pd
 from src.utils.score_utils import *
+from sklearn.decomposition import PCA
 
 def compute_scores_df(length_filt_finished_paths, length_filt_paths, 
                              time_filt_paths, count_cutoff=30, scaling='standard'):
@@ -55,5 +56,68 @@ def compute_scores_df(length_filt_finished_paths, length_filt_paths,
     print(f"Number of unique articles: {composite_df.shape[0]}")
     return composite_df.sort_values(by='avg_weight', ascending=False)
 
-# Example usage:
-# composite_df = compute_composite_scores(finished_paths, fi
+
+def calculate_composite_scores(composite_df):
+    """
+    Computes composite scores and PCA composite scores for quality and utility metrics.
+
+    Parameters:
+        composite_df (pd.DataFrame): DataFrame containing scaled features for score calculation.
+        composite_df_pca (pd.DataFrame): DataFrame containing PCA components.
+
+    Returns:
+        tuple: Two DataFrames (quality_scores_clicks, utility_scores_clicks) with calculated scores.
+    """
+    # Initialize DataFrames
+    quality_scores_clicks = pd.DataFrame(index=composite_df.index)
+    utility_scores_clicks = pd.DataFrame(index=composite_df.index)
+
+    # Define weights for composite scores (quality)
+    quality_weights_3 = {
+        'weight_avg_scaled': 0.55,  # Example: 55% importance
+        'unf_ratio_scaled': 0.2,   # Example: 20% importance
+        'detour_ratio_scaled': 0.25  # Example: 25% importance
+    }
+    quality_weights_2 = {
+        'weight_avg_scaled': 0.65,  
+        'detour_ratio_scaled': 0.35
+    }
+
+    # Calculate quality scores
+    quality_scores_clicks['composite_3'] = (
+        composite_df[['weight_avg_scaled', 'unf_ratio_scaled', 'detour_ratio_scaled']] * quality_weights_3
+    ).sum(axis=1)
+    quality_scores_clicks['composite_2'] = (
+        composite_df[['weight_avg_scaled', 'detour_ratio_scaled']] * quality_weights_2
+    ).sum(axis=1)
+
+    # Compute composite score using PCA for only weight_avg_scaled and detour_ratio_scaled
+    pca = PCA(n_components=1)
+    quality_scores_clicks['PCA_composite_2'] = pca.fit_transform(
+        composite_df[['weight_avg_scaled', 'detour_ratio_scaled']]
+)
+
+    # Define weights for composite scores (utility)
+    utility_weights_3 = {
+        'sum_cweight_scaled': 0.55,  # Example: 55% importance
+        'unf_ratio_scaled': 0.2,    # Example: 20% importance
+        'detour_ratio_scaled': 0.25  # Example: 25% importance
+    }
+    utility_weights_2 = {
+        'sum_cweight_scaled': 0.65,  # Example: 55% importance
+        'detour_ratio_scaled': 0.35  # Example: 25% importance
+    }
+
+    # Calculate utility scores
+    utility_scores_clicks['composite_3'] = (
+        composite_df[['sum_cweight_scaled', 'unf_ratio_scaled', 'detour_ratio_scaled']] * utility_weights_3
+    ).sum(axis=1)
+    utility_scores_clicks['composite_2'] = (
+        composite_df[['sum_cweight_scaled', 'detour_ratio_scaled']] * utility_weights_2
+    ).sum(axis=1)
+
+    # Return sorted DataFrames
+    return (
+        quality_scores_clicks.sort_values(by='composite_3', ascending=False),
+        utility_scores_clicks.sort_values(by='composite_3', ascending=False)
+)
