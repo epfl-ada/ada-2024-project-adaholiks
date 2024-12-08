@@ -118,19 +118,16 @@ def filter_duration(df):
 
     # Concatenate all filtered groups
     filtered_df = pd.concat(filtered_dfs, ignore_index=True)
-    
-    # downsample data to one IpAdress per identifier
-    downsampled_df = filtered_df.groupby(['hashedIpAddress', 'identifier']).sample(n=1, random_state=42)
 
     # Calculate the number of removed rows
-    removed = df.shape[0] - downsampled_df.shape[0]
+    removed = df.shape[0] - filtered_df.shape[0]
 
     # Print the result
     print(f"In sampling a total of {removed} samples were removed, "
         f"which represents {removed / df.shape[0] * 100:.3f}% of the original data.",
         f"{df.shape[0]} samples remain.")
 
-    return downsampled_df
+    return filtered_df
 
 ########################################################################################################################
 # Functions written for "Statistical analysis of the article data"
