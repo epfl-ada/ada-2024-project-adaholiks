@@ -1,5 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.decomposition import PCA
+
 
 # ----------------------------------------------------------------------------------------------------------
 # ------------------------ helper functions for converting the data into dataframes ------------------------
@@ -55,7 +58,7 @@ def get_distance_between_articles(df, article1, article2):
     return distance
 
 # --------------------------------------------------------------------------------------------
-# ------------------------ Plotting functions ------------------------------------------------
+# ------------------------ Plotting functions for path processing-----------------------------
 
 def plot_path_length_distributions(df, full_path_col='full_path_length', simplified_path_col='simplified_path_length'):
     """
@@ -214,3 +217,94 @@ def plot_styled_bar_chart(
     # Show the plot
     plt.show()
 
+# ----------------------------------------------------------------------------------------------------------
+# --------------------------- Plotting function for the scores ---------------------------------------------
+
+
+def plot_scaled_score_correlations(composite_df, 
+                                   scaled_columns = ['weight_avg_scaled', 
+                                                     'unf_ratio_scaled', 
+                                                     'detour_ratio_scaled', 
+                                                     'sum_cweight_scaled', 
+                                                     'avg_speed_scaled', 
+                                                     'sum_cspeed_scaled'
+]):
+    """
+    Generates a pairplot to visualize the correlations among scaled score columns in a DataFrame.
+    
+    Parameters:
+        composite_df (pd.DataFrame): The input DataFrame containing scaled score columns.
+        scaled_columns (list): List of column names to consider for the correlation plot.
+    
+    Returns:
+        sns.PairGrid: The generated Seaborn PairGrid object.
+    """
+    # Filter the DataFrame to include only the specified scaled columns
+    composite_df_scaled = composite_df[scaled_columns]
+    
+    # Drop rows with NaN values
+    composite_df_scaled = composite_df_scaled.dropna()
+    
+    # Plot the correlation pairplot
+    pairplot = sns.pairplot(composite_df_scaled, diag_kind='kde', plot_kws={'alpha': 0.5})
+    
+    return pairplot
+
+
+def perform_pca_and_plot(df, components=['weight_avg_scaled', 'detour_ratio_scaled'], biplot=False, title="PCA Analysis"):
+    """
+    Performs PCA on the given data, generates a scree plot, and optionally creates a biplot.
+    
+    Parameters:
+        df (pd.DataFrame): The input DataFrame containing the features for PCA.
+        components (list): The list of column names to use for PCA.
+        biplot (bool): If True, generates a PCA biplot (default is False).
+        title (str): The title to display above the plots.
+    
+    Returns:
+        tuple: PCA object and the PCA-transformed components (numpy array).
+    """
+
+    n_components = len(components)
+
+    # Perform PCA
+    data = df[components]
+
+    pca = PCA(n_components=n_components)
+    pca_components = pca.fit_transform(data)
+
+    # Set up the figure layout
+    if biplot:
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))  # Side-by-side plots
+    else:
+        fig, axes = plt.subplots(1, 1, figsize=(6, 5))
+        axes = [axes]  # Ensure we always have a list of axes for uniform handling
+
+    # Scree plot
+    axes[0].bar(range(1, len(pca.explained_variance_ratio_) + 1), pca.explained_variance_ratio_, alpha=0.7, color='b')
+    axes[0].set_xticks(range(1, len(pca.explained_variance_ratio_) + 1))
+    axes[0].set_xticklabels([f'PC{i}' for i in range(1, n_components + 1)])
+    axes[0].set_ylabel('Explained Variance Ratio')
+    axes[0].set_xlabel('Principal Component')
+    axes[0].set_title('Scree Plot')
+
+    # Optional: Create a biplot
+    if biplot:
+        axes[1].scatter(pca_components[:, 0], pca_components[:, 1], alpha=0.5)
+        
+        # Plot arrows for each original variable
+        for i, (x, y) in enumerate(zip(pca.components_[0], pca.components_[1])):
+            axes[1].arrow(0, 0, x, y, color='r', alpha=0.8, head_width=0.05)
+            axes[1].text(x * 1.15, y * 1.15, data.columns[i], color='g', fontsize=10)
+        
+        axes[1].set_xlabel('PC1')
+        axes[1].set_ylabel('PC2')
+        axes[1].set_title('PCA Biplot')
+        axes[1].grid()
+
+    # Add overall title
+    fig.suptitle(title, fontsize=16, fontweight='bold', y=1.05)
+    plt.tight_layout()
+    plt.show()
+
+    return pca, pca_components
