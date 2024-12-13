@@ -148,7 +148,7 @@ def filter_unfinished_paths(unfinished_paths_df, multiplier=1.5):
 
 
 
-def filter_duration(df_in, pair_threshold=5):
+def filter_duration(df_in, pair_threshold=5, multiplier=1.5):
     """
     Filter the DataFrame based on the distance and duration bounds using the IQR method, 
     downsample to one IP address per identifier, and limit the number of plays per start-target pair.
@@ -194,7 +194,7 @@ def filter_duration(df_in, pair_threshold=5):
         IQR = Q3 - Q1
 
         # Calculate upper bound based on IQR
-        upper_bound = Q3 + 1.5 * IQR
+        upper_bound = Q3 + multiplier * IQR
 
         # Keep only rows within the upper bound
         filtered_df_d = df_d[df_d['durationInSec'] <= upper_bound]
