@@ -308,3 +308,302 @@ def perform_pca_and_plot(df, components=['weight_avg_scaled', 'detour_ratio_scal
     plt.show()
 
     return pca, pca_components
+
+
+def plot_incoming_links(article_df, n=10):
+    """
+    Displays summary statistics and plots side-by-side:
+    - Top N most linked-to articles
+    - Distribution of incoming links (linear and log scale)
+    """
+    # Summary statistics
+    print("Summary statistics for incoming links:")
+    print(article_df['incoming_links'].describe())
+
+    # Top N most linked-to articles
+    all_targets = article_df['linkTarget'].explode()
+    target_counts = all_targets.value_counts()
+    top_linked_articles = target_counts.head(n)
+
+    # Create subplots
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    fig.suptitle("Incoming Links Analysis", fontsize=16, fontweight='bold', color='#2C3E50')
+
+    # Bar plot for top-linked articles
+    sns.barplot(
+        x=top_linked_articles.index,
+        y=top_linked_articles.values,
+        ax=axes[0],
+        color='#3498db',
+        edgecolor='black',
+        alpha=0.75
+    )
+    axes[0].set_title(f"Top {n} Most Linked-To Articles", fontsize=14)
+    axes[0].set_xlabel("Article", fontsize=12)
+    axes[0].set_ylabel("Number of Links", fontsize=12)
+    axes[0].tick_params(axis='x', rotation=45)
+
+    # Distribution of incoming links (linear scale)
+    sns.histplot(article_df['incoming_links'], bins=30, kde=True, ax=axes[1])
+    axes[1].set_title("Incoming Links Distribution", fontsize=14)
+    axes[1].set_xlabel("Number of Incoming Links", fontsize=12)
+    axes[1].set_ylabel("Frequency", fontsize=12)
+
+    # Distribution of incoming links (log scale)
+    sns.histplot(article_df['incoming_links'], bins=30, kde=True, log_scale=(True, False), ax=axes[2])
+    axes[2].set_title("Incoming Links (Log Scale)", fontsize=14)
+    axes[2].set_xlabel("Number of Incoming Links", fontsize=12)
+    axes[2].set_ylabel("Frequency", fontsize=12)
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+
+def plot_outgoing_links(article_df, n=10):
+    """
+    Displays summary statistics and plots side-by-side:
+    - Top N articles with the most outgoing links
+    - Distribution of outgoing links (linear and log scale)
+    """
+    # Summary statistics
+    print("Summary statistics for outgoing links:")
+    print(article_df['num_hyperlinks'].describe())
+
+    # Top articles by outgoing links
+    top_hyperlinks = article_df.nlargest(n, 'num_hyperlinks')[['article', 'num_hyperlinks']]
+
+    # Create subplots
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    fig.suptitle("Outgoing Links Analysis", fontsize=16, fontweight='bold', color='#2C3E50')
+
+    # Bar plot for top articles by outgoing links
+    sns.barplot(
+        x=top_hyperlinks['article'],
+        y=top_hyperlinks['num_hyperlinks'],
+        ax=axes[0],
+        color='#3498db',
+        edgecolor='black',
+        alpha=0.75
+    )
+    axes[0].set_title("Top Articles by Outgoing Links", fontsize=14)
+    axes[0].set_xlabel("Article", fontsize=12)
+    axes[0].set_ylabel("Number of Hyperlinks", fontsize=12)
+    axes[0].tick_params(axis='x', rotation=45)
+
+    # Distribution of outgoing links (linear scale)
+    sns.histplot(article_df['num_hyperlinks'], bins=20, kde=True, ax=axes[1])
+    axes[1].set_title("Outgoing Links Distribution", fontsize=14)
+    axes[1].set_xlabel("Number of Hyperlinks", fontsize=12)
+    axes[1].set_ylabel("Frequency", fontsize=12)
+
+    # Distribution of outgoing links (log scale)
+    sns.histplot(article_df['num_hyperlinks'], bins=20, kde=True, log_scale=(True, False), ax=axes[2])
+    axes[2].set_title("Outgoing Links (Log Scale)", fontsize=14)
+    axes[2].set_xlabel("Number of Hyperlinks", fontsize=12)
+    axes[2].set_ylabel("Frequency", fontsize=12)
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from textwrap import fill
+
+def plot_hyperlink_density(article_df, n=10):
+    """
+    Plots side-by-side:
+    - Top N articles by hyperlink density
+    - Distribution of hyperlink density (linear and log scale)
+    """
+    # Summary statistics
+    print("Summary statistics for hyperlink density:")
+    print(article_df['hyperlink_density'].describe())
+
+    # Top articles by hyperlink density
+    top_hyperlink_density = article_df.sort_values(by='hyperlink_density', ascending=False).head(n)
+
+    # Wrap long article names
+    top_hyperlink_density['wrapped_article'] = top_hyperlink_density['article'].apply(lambda x: fill(x, width=15))
+
+    # Create subplots
+    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+    fig.suptitle("Hyperlink Density Analysis", fontsize=16, fontweight='bold', color='#2C3E50')
+
+    # Bar plot for top articles by hyperlink density
+    sns.barplot(
+        x=top_hyperlink_density['wrapped_article'],
+        y=top_hyperlink_density['hyperlink_density'],
+        ax=axes[0],
+        color='#3498db',
+        edgecolor='black',
+        alpha=0.75
+    )
+    axes[0].set_title("Top Articles by Hyperlink Density", fontsize=14)
+    axes[0].set_xlabel("Article", fontsize=12)
+    axes[0].set_ylabel("Hyperlink Density", fontsize=12)
+    axes[0].tick_params(axis='x', rotation=45)
+
+    # Distribution of hyperlink density (linear scale)
+    sns.histplot(article_df['hyperlink_density'], bins=30, kde=True, ax=axes[1])
+    axes[1].set_title("Hyperlink Density Distribution", fontsize=14)
+    axes[1].set_xlabel("Hyperlink Density", fontsize=12)
+    axes[1].set_ylabel("Frequency", fontsize=12)
+
+    # Distribution of hyperlink density (log scale)
+    sns.histplot(article_df['hyperlink_density'], bins=30, kde=True, log_scale=(True, False), ax=axes[2])
+    axes[2].set_title("Hyperlink Density (Log Scale)", fontsize=14)
+    axes[2].set_xlabel("Hyperlink Density", fontsize=12)
+    axes[2].set_ylabel("Frequency", fontsize=12)
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_article_length(article_df, n=10):
+    """
+    Displays summary statistics and plots side-by-side:
+    - Top N articles by number of characters
+    - Distribution of article lengths
+    """
+    # Summary statistics
+    print("Summary statistics for number of characters:")
+    print(article_df['num_characters'].describe())
+
+    # Top articles by number of characters
+    top_characters = article_df.nlargest(n, 'num_characters')[['article', 'num_characters']]
+
+    # Create subplots
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    fig.suptitle("Article Length Analysis", fontsize=16, fontweight='bold', color='#2C3E50')
+
+    # Bar plot for top articles by number of characters
+    sns.barplot(
+        x=top_characters['article'],
+        y=top_characters['num_characters'],
+        ax=axes[0],
+        color='#3498db',
+        edgecolor='black',
+        alpha=0.75
+    )
+    axes[0].set_title("Top Articles by Number of Characters", fontsize=14)
+    axes[0].set_xlabel("Article", fontsize=12)
+    axes[0].set_ylabel("Number of Characters", fontsize=12)
+    axes[0].tick_params(axis='x', rotation=45)
+
+    # Distribution of article lengths
+    sns.histplot(article_df['num_characters'], bins=30, kde=True, ax=axes[1])
+    axes[1].set_title("Article Length Distribution", fontsize=14)
+    axes[1].set_xlabel("Number of Characters", fontsize=12)
+    axes[1].set_ylabel("Frequency", fontsize=12)
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_average_cosine_distance(article_df, n=10):
+    """
+    Plots the average cosine distance analysis:
+    - Top N articles with the highest average cosine distance
+    - Distribution of average cosine distances
+
+    Parameters:
+    - article_df: DataFrame containing the articles with 'average_cosine_distance' column
+    - n: Number of top articles to display
+    """
+    # Ensure the column exists
+    if 'average_cosine_distance' not in article_df.columns:
+        raise ValueError("The column 'average_cosine_distance' is missing from the DataFrame. Please compute it first.")
+
+    # Drop NaN values
+    valid_distances = article_df.dropna(subset=['average_cosine_distance'])
+
+    # Summary statistics
+    print("Summary statistics for average cosine distance:")
+    print(valid_distances['average_cosine_distance'].describe())
+
+    # Top N articles with highest cosine distances
+    top_distances = valid_distances.nlargest(n, 'average_cosine_distance')
+
+    # Create subplots
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    fig.suptitle("Average Cosine Distance Analysis", fontsize=16, fontweight='bold', color='#2C3E50')
+
+    # Bar plot for top articles
+    sns.barplot(
+        x=top_distances['article'],
+        y=top_distances['average_cosine_distance'],
+        ax=axes[0],
+        color='#3498db',
+        edgecolor='black',
+        alpha=0.75
+    )
+    axes[0].set_title(f"Top {n} Articles by Cosine Distance", fontsize=14)
+    axes[0].set_xlabel("Article", fontsize=12)
+    axes[0].set_ylabel("Average Cosine Distance", fontsize=12)
+    axes[0].tick_params(axis='x', rotation=45)
+
+    # Distribution of average cosine distances
+    sns.histplot(valid_distances['average_cosine_distance'], bins=30, kde=True, ax=axes[1])
+    axes[1].set_title("Distribution of Average Cosine Distances", fontsize=14)
+    axes[1].set_xlabel("Average Cosine Distance", fontsize=12)
+    axes[1].set_ylabel("Frequency", fontsize=12)
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+
+def plot_vocabulary_richness(article_df, n=10):
+    """
+    Plots vocabulary richness analysis:
+    - Top N articles with the highest vocabulary richness
+    - Distribution of vocabulary richness
+
+    Parameters:
+    - article_df: DataFrame containing the articles with 'vocabulary_richness' column
+    - n: Number of top articles to display
+    """
+    # Ensure the column exists
+    if 'vocabulary_richness' not in article_df.columns:
+        raise ValueError("The column 'vocabulary_richness' is missing from the DataFrame. Please compute it first.")
+
+    # Drop NaN values
+    valid_richness = article_df.dropna(subset=['vocabulary_richness'])
+
+    # Summary statistics
+    print("Summary statistics for vocabulary richness:")
+    print(valid_richness['vocabulary_richness'].describe())
+
+    # Top N articles with highest vocabulary richness
+    top_richness = valid_richness.nlargest(n, 'vocabulary_richness')
+
+    # Create subplots
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    fig.suptitle("Vocabulary Richness Analysis", fontsize=16, fontweight='bold', color='#2C3E50')
+
+    # Bar plot for top articles
+    sns.barplot(
+        x=top_richness['article'],
+        y=top_richness['vocabulary_richness'],
+        ax=axes[0],
+        color='#3498db',
+        edgecolor='black',
+        alpha=0.75
+    )
+    axes[0].set_title(f"Top {n} Articles by Vocabulary Richness", fontsize=14)
+    axes[0].set_xlabel("Article", fontsize=12)
+    axes[0].set_ylabel("Vocabulary Richness", fontsize=12)
+    axes[0].tick_params(axis='x', rotation=45)
+
+    # Distribution of vocabulary richness
+    sns.histplot(valid_richness['vocabulary_richness'], bins=30, kde=True, ax=axes[1])
+    axes[1].set_title("Distribution of Vocabulary Richness", fontsize=14)
+    axes[1].set_xlabel("Vocabulary Richness", fontsize=12)
+    axes[1].set_ylabel("Frequency", fontsize=12)
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+
