@@ -32,6 +32,7 @@ def get_top_identifiers_paths(paths_df, top_n=10):
     return top_n_paths
 
 def backup_dataframes(df):
+    top1 = get_top_identifiers_paths(df, top_n=1)
     top4 = get_top_identifiers_paths(df, top_n=4)
     top10 = get_top_identifiers_paths(df, top_n=10)
-    return top4, top10
+    return top1, top4, top10

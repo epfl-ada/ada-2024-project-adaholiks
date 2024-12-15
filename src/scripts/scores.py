@@ -4,7 +4,7 @@ from src.utils.score_utils import *
 from sklearn.decomposition import PCA
 
 def compute_scores_df(length_filt_finished_paths, length_filt_paths, 
-                             time_filt_paths, count_cutoff=30, scaling='standard'):
+                             time_filt_paths, count_cutoff=30, scaling='standard', consider_start=True):
     """
     Computes composite scores by combining various metrics for articles 
     based on finished and filtered paths.
@@ -21,16 +21,16 @@ def compute_scores_df(length_filt_finished_paths, length_filt_paths,
     """
     # Calculate metrics
     print("Calculating click related scores...")
-    avg_weight_df = calculate_avg_article_weights(length_filt_finished_paths, count_cutoff=count_cutoff, scaling=scaling)
-    unfinished_ratio_df = calculate_unfinished_ratios(length_filt_paths, count_cutoff=count_cutoff, scaling=scaling)
-    detour_ratio_df = calculate_detour_ratios(length_filt_finished_paths, count_cutoff=count_cutoff, scaling=scaling)
+    avg_weight_df = calculate_avg_article_weights(length_filt_finished_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
+    unfinished_ratio_df = calculate_unfinished_ratios(length_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
+    detour_ratio_df = calculate_detour_ratios(length_filt_finished_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
 
-    sum_cweight_df = calculate_sum_article_cweights(length_filt_finished_paths, count_cutoff=count_cutoff, scaling=scaling)
+    sum_cweight_df = calculate_sum_article_cweights(length_filt_finished_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
 
     # Calculate speed metrics
     print("Calculating speed related scores...")
-    avg_speed_df = calc_avg_article_speed(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling)
-    sum_cspeed_df = calc_sum_article_cspeed(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling)
+    avg_speed_df = calc_avg_article_speed(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
+    sum_cspeed_df = calc_sum_article_cspeed(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
 
     # Combine click metrics into a composite DataFrame
     composite_df = pd.DataFrame(index=avg_weight_df.index)

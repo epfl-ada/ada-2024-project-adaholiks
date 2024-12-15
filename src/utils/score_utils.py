@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
 
 
-def calculate_avg_article_weights(df, count_cutoff=30, scaling=None):
+def calculate_avg_article_weights(df, count_cutoff=30, scaling=None, consider_start=True):
     """
     Calculate the average weights of articles from a DataFrame containing path information.
 
@@ -13,6 +13,7 @@ def calculate_avg_article_weights(df, count_cutoff=30, scaling=None):
             - 'distance': Distance associated with the path
         scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None
         count_cutoff (int): Minimum number of appearances for an article to be considered
+        consider_start (bool): if the start article should also receives a score 
 
     Returns:
         pd.DataFrame: A DataFrame containing:
@@ -22,7 +23,10 @@ def calculate_avg_article_weights(df, count_cutoff=30, scaling=None):
     """
     # Copy and preprocess the DataFrame
     df = df[['simplified_path', 'simplified_path_length', 'distance']].copy()
-    df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1])  # Remove start and end articles
+    if consider_start: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
+    else: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article
 
     # Calculate weight for each path
     df['weight'] = df['distance'] / df['simplified_path_length']
@@ -70,7 +74,7 @@ def calculate_avg_article_weights(df, count_cutoff=30, scaling=None):
 
 # function for utils later to get the average weights of articles from a DataFrame containing path information
 
-def calculate_sum_article_cweights(df, count_cutoff=30, scaling=None):
+def calculate_sum_article_cweights(df, count_cutoff=30, scaling=None, consider_start=True):
     """
     Calculate the sum of the centered weights of articles from a DataFrame containing path information.
 
@@ -81,6 +85,7 @@ def calculate_sum_article_cweights(df, count_cutoff=30, scaling=None):
             - 'distance': Distance associated with the path
         scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None
         count_cutoff (int): Minimum number of appearances for an article to be considered
+        consider_start (bool): if the start article should also receives a score 
 
     Returns:
         pd.DataFrame: A DataFrame containing:
@@ -90,7 +95,10 @@ def calculate_sum_article_cweights(df, count_cutoff=30, scaling=None):
     """
     # Copy and preprocess the DataFrame
     df = df[['simplified_path', 'simplified_path_length', 'distance']].copy()
-    df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1])  # Remove start and end articles
+    if consider_start: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
+    else: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article
 
     # Calculate weight for each path
     df['weight'] = df['distance'] / df['simplified_path_length']
@@ -142,7 +150,7 @@ def calculate_sum_article_cweights(df, count_cutoff=30, scaling=None):
 
 # code a function that returns the ratio of the number of times an article appears in unfinished paths over the total number of times it appears
 
-def calculate_unfinished_ratios(in_df, count_cutoff=30, scaling=None):
+def calculate_unfinished_ratios(in_df, count_cutoff=30, scaling=None, consider_start=True):
     """
     Calculate the ratio of the number of times an article appears in unfinished paths over the total number of times it appears.
 
@@ -151,13 +159,17 @@ def calculate_unfinished_ratios(in_df, count_cutoff=30, scaling=None):
             - 'simplified_path': List of articles in the path
         count_cutoff (int): Minimum number of appearances for an article to be considered
         scaling (str): Type of scaling to use. Options are 'minmax', 'standard', and 'robust' or None
+        consider_start (bool): if the start article should also receives a score 
 
     Returns:
         pd.Series: A Series containing the ratio for each article
     """
     # Copy and preprocess the DataFrame
     df = in_df[['simplified_path', 'finished']].copy()
-    df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1])  # Remove start and end articles
+    if consider_start: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
+    else: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article   
 
     # Initialize a dictionary to store counts
     article_counts = {}
@@ -209,7 +221,7 @@ def calculate_unfinished_ratios(in_df, count_cutoff=30, scaling=None):
 
 # code a function that counts the number of dead ends an article has (difference between full path list content and simplified path list content)
 
-def calculate_detour_ratios(in_df, count_cutoff=1, scaling=None):
+def calculate_detour_ratios(in_df, count_cutoff=1, scaling=None, consider_start=True):
     """
     Calculate the detour ratio for articles based on the full path and simplified path.
 
@@ -219,15 +231,19 @@ def calculate_detour_ratios(in_df, count_cutoff=1, scaling=None):
             - 'simplified_path': List of articles in the simplified path
         count_cutoff (int): Minimum number of detours for an article to be considered.
         scaling (str): Type of scaling to use. Options are 'minmax', 'standard', and 'robust' or None.
+        consider_start (bool): if the start article should also receives a score.
 
     Returns:
         pd.DataFrame: A DataFrame containing the detour ratio and scaled values for each article.
     """
     # Copy and preprocess the DataFrame
     df = in_df[['full_path', 'simplified_path']].copy()
-    df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1])  # Remove start and end articles
-    df['full_path'] = df['full_path'].apply(lambda l: l[1:-1])  # Remove start and end articles
-
+    if consider_start: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
+        df['full_path'] = df['full_path'].apply(lambda l: l[:-1])
+    else: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article
+        df['full_path'] = df['full_path'].apply(lambda l: l[1:-1])
     # Initialize dictionaries to store counts
     detour_counts = {}
     total_counts = {}
@@ -283,69 +299,10 @@ def calculate_detour_ratios(in_df, count_cutoff=1, scaling=None):
 
 # ------------------------------------------------
 
-def calc_avg_article_time(df, count_cutoff=30, scaling=None):
+
+def calc_avg_article_speed(df, count_cutoff=30, scaling=None, consider_start=True):
     """
-    Calculate the average speed of articles from a DataFrame containing path information.
-
-    Parameters:
-        df (pd.DataFrame): Input DataFrame with the following columns:
-            - 'simplified_path': List of articles in the path
-            - 'durationInSec': Duration associated with the path
-        count_cutoff (int): Minimum number of appearances for an article to be considered
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing:
-            - 'article': Article name
-            - 'n_appearances': Number of times the article appeared in paths
-            - 'avg_speed': Average speed of the article
-    """
-    # Copy and preprocess the DataFrame
-    df = df[['simplified_path', 'durationInSec']].copy()
-
-    df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1])  # Remove start and end articles
-
-    # Initialize an empty DataFrame to store results
-    avg_article_speed_df = pd.DataFrame(columns=['article', 'n_appearances', 'avg_speed'])
-    avg_article_speed_df.set_index('article', inplace=True)
-
-    # Iterate through each row to calculate speeds
-    for _, row in df.iterrows():
-        speed = row['durationInSec']
-        simplified_path = row['simplified_path']
-
-        for article in simplified_path:
-            if article not in avg_article_speed_df.index:
-                avg_article_speed_df.loc[article] = [0, 0.0]
-
-            # Update counts and sums
-            avg_article_speed_df.at[article, 'n_appearances'] += 1
-            avg_article_speed_df.at[article, 'avg_speed'] += speed
-
-    # Calculate the average speed by dividing sum by counts
-    avg_article_speed_df['avg_speed'] = avg_article_speed_df['avg_speed'] / avg_article_speed_df['n_appearances']
-
-    # Filter out articles that appear less than the cutoff
-    avg_article_speed_df = avg_article_speed_df[avg_article_speed_df['n_appearances'] >= count_cutoff]
-
-    if scaling is not None:
-        # Normalize the average speed
-        if scaling == 'minmax':
-            scaler = MinMaxScaler()
-            avg_article_speed_df[scaling] = scaler.fit_transform(1-avg_article_speed_df[['avg_speed']])
-        elif scaling == 'standard':
-            scaler = StandardScaler()
-            avg_article_speed_df[scaling] = -scaler.fit_transform(avg_article_speed_df[['avg_speed']])
-
-    #print(f"Number of unique articles after time calc: {avg_article_speed_df.shape[0]}")
-
-    return avg_article_speed_df#.reset_index()
-
-def calc_avg_article_speed(df, count_cutoff=30, scaling=None):
-    """
-    Calculate the average speed and average path length of articles 
-    from a DataFrame containing path information.
-
+    Calculate the average speed 
     Parameters:
         df (pd.DataFrame): Input DataFrame with the following columns:
             - 'simplified_path': List of articles in the path
@@ -353,6 +310,7 @@ def calc_avg_article_speed(df, count_cutoff=30, scaling=None):
             - 'full_path_length': Total length of the path
         count_cutoff (int): Minimum number of appearances for an article to be considered.
         scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None.
+        consider_start (bool): if the start article should also receives a score 
 
     Returns:
         pd.DataFrame: A DataFrame containing:
@@ -368,7 +326,10 @@ def calc_avg_article_speed(df, count_cutoff=30, scaling=None):
     df['speed'] = df['full_path_length'] / df['durationInSec']
 
     # Remove the start and end articles from the simplified path
-    df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1])  # Adjust as per your input structure
+    if consider_start: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
+    else: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article
 
     # Initialize an empty DataFrame to store results
     avg_article_speed_df = pd.DataFrame(columns=['article', 'n_appearances', 'avg_speed', 'avg_path_length'])
@@ -412,7 +373,7 @@ def calc_avg_article_speed(df, count_cutoff=30, scaling=None):
 
 # ------------------------------------------------
 
-def calc_sum_article_cspeed(df, count_cutoff=30, scaling=None):
+def calc_sum_article_cspeed(df, count_cutoff=30, scaling=None, consider_start=True):
     """
     Calculate the sum of the centered speeds of articles from a DataFrame containing path information.
 
@@ -423,6 +384,7 @@ def calc_sum_article_cspeed(df, count_cutoff=30, scaling=None):
             - 'full_path_length': Total length of the path
         count_cutoff (int): Minimum number of appearances for an article to be considered.
         scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None.
+        consider_start (bool): if the start article should also receives a score 
 
     Returns:
         pd.DataFrame: A DataFrame containing:
@@ -436,14 +398,16 @@ def calc_sum_article_cspeed(df, count_cutoff=30, scaling=None):
     # Calculate the speed for each path
     df['speed'] = df['full_path_length'] / df['durationInSec']
 
-    # Calculate the mean speed
-    article_mean_speed = (df['speed'] * (df['full_path_length']-1)).sum() / (df['full_path_length']-1).sum()
+    # Calculate the mean speed (excluting the last article in the path)
+    article_mean_speed = (df['speed'] * (df['full_path_length'])).sum() / (df['full_path_length']).sum()
 
     # Center the speeds by subtracting the mean
     df['centered_speed'] = df['speed'] - article_mean_speed
 
-    # Remove the start and end articles from the simplified path
-    df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1])  # Adjust as per your input structure
+    if consider_start: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
+    else: 
+        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article
 
     # Initialize an empty DataFrame to store results
     sum_cspeed_df = pd.DataFrame(columns=['article', 'n_appearances', 'sum_cspeed'])

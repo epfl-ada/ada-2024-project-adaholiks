@@ -1,5 +1,86 @@
-import numpy as np
-import pandas as pd
+from src.utils.filtering_utils import *
+
+def filter_paths(paths_df, sampling_threshold=10,  multiplier=1.5, downsaple=True, seed=42):
+    """ 
+    Filter the paths data frame.
+    Filter for number of clicks both finished and unfishined paths.
+    FIlter for speed only the finished paths.
+    In all cases first the paths are downsampled an then the IQR method is applied.
+
+    Parameters:
+    paths_df (pd.DataFrame): The input DataFrame containing path data.
+    sampling_threshold (int): The maximum number of times the same start, and target articles appear post filtering. Default is 10.
+    multiplier (float): The multiplier for the IQR to determine the bounds. Default is 1.5.
+
+    Returns:
+    length_filt_finished_paths_df (pd.DataFrame): The finished paths fileterd by path length
+    filt_unfinished_paths_df (pd.DataFrame): The unfinished pats filtered by path length
+    time_filt_finished_paths (pd.DataFrame): The finished paths filtered by time
+    """
+    finished_paths = paths_df[paths_df['finished'] == True]
+    unfinished_paths = paths_df[paths_df['finished'] == False]
+
+    # remove paths with distance 0
+    finished_paths = finished_paths[~(finished_paths['distance']== 0)]
+
+    if downsaple:
+        # downsample the paths ()
+        finished_paths_sampled, finished_num_removed = downsample_paths(finished_paths, threshold=sampling_threshold, seed=seed)
+        unfinished_paths_sampled, unfinished_num_removed = downsample_paths(unfinished_paths, threshold=sampling_threshold, seed=seed)
+    else:
+        finished_paths_sampled = finished_paths.groupby(['hashedIpAddress', 'identifier']).sample(n=1, random_state=seed)
+        unfinished_paths_sampled = unfinished_paths.groupby(['hashedIpAddress', 'identifier']).sample(n=1, random_state=seed)
+
+    # filter the finished paths by path length
+    length_filt_finished_paths_df, length_removed_count = IQR_filtering(finished_paths_sampled, 'full_path_length', multiplier=multiplier)
+    # Calculate the number of removed rows and the percentage
+    removed_count = finished_num_removed + length_removed_count
+    removed_percentage = (removed_count / finished_paths.shape[0]) * 100
+    # Print the summary
+    print("-"*50)
+    print(f"In path length filtering a total of {removed_count} paths were removed from the finished paths, "
+          f"which represents {removed_percentage:.3f}% of the original finished data.", 
+          f" {length_filt_finished_paths_df.shape[0]} paths remain.")
+    print("-"*50)
+
+    # filter the unfinished paths by path length
+    filt_unfinished_paths_df, unfinished_removed_count = IQR_filtering(unfinished_paths_sampled, 'simplified_path_length', lower_bound=True, multiplier=multiplier)
+    removed_count = unfinished_num_removed + unfinished_removed_count
+    removed_percentage = (removed_count / unfinished_paths.shape[0]) * 100
+    # Print the summary
+    print(f"In path length filtering a total of {removed_count} paths were removed from the unfinished paths, "
+            f"which represents {removed_percentage:.3f}% of the original unfinished data.",
+            f" {filt_unfinished_paths_df.shape[0]} paths remain.")
+    print("-"*50)
+
+    # filter the finished paths by time
+    time_filt_finished_paths, time_removed_count = IQR_filtering(finished_paths_sampled, 'durationInSec', multiplier=multiplier)
+    removed_count = finished_num_removed + time_removed_count
+    removed_percentage = (removed_count / finished_paths.shape[0]) * 100
+    # Print the summary
+    print(f"In path time filtering a total of {removed_count} paths were removed from the finished paths, "
+            f"which represents {removed_percentage:.3f}% of the original finished data.",
+            f" {time_filt_finished_paths.shape[0]} paths remain.")
+    print("-"*50)
+
+    return length_filt_finished_paths_df, filt_unfinished_paths_df, time_filt_finished_paths
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def filter_finished_paths(finished_paths_df, pair_threshold=5, multiplier=1.5):
     """
