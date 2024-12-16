@@ -607,3 +607,22 @@ def plot_vocabulary_richness(article_df, n=10):
     plt.tight_layout()
     plt.show()
 
+def plot_correlations(correlations):
+    """
+    Plots bar charts for correlation results.
+    Parameters:
+    - correlations (dict): Dictionary containing correlation series
+    """
+    fig, axes = plt.subplots(1, len(correlations), figsize=(16, 6))
+
+    if len(correlations) == 1:
+        axes = [axes]
+
+    for ax, (composite, corr) in zip(axes, correlations.items()):
+        corr.sort_values().plot(kind='bar', ax=ax, title=f"Correlation with {composite}")
+        ax.set_ylabel("Correlation")
+        ax.set_xlabel("Metrics")
+
+    plt.tight_layout()
+    plt.show()
+
