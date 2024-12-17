@@ -225,10 +225,9 @@ def plot_scaled_score_correlations(composite_df,
                                    scaled_columns = ['weight_avg_scaled', 
                                                      'unf_ratio_scaled', 
                                                      'detour_ratio_scaled', 
-                                                     'sum_cweight_scaled', 
-                                                     'avg_speed_scaled', 
-                                                     'sum_cspeed_scaled'
-]):
+                                                     'sum_cweight_scaled',
+                                                     'avg_adj_time_scaled',
+                                                     'sum_cadj_time_scaled']):
     """
     Generates a pairplot to visualize the correlations among scaled score columns in a DataFrame.
     

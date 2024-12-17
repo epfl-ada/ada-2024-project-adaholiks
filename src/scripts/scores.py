@@ -29,8 +29,10 @@ def compute_scores_df(length_filt_finished_paths, length_filt_paths,
 
     # Calculate speed metrics
     print("Calculating speed related scores...")
-    avg_speed_df = calc_avg_article_speed(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
-    sum_cspeed_df = calc_sum_article_cspeed(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
+    #avg_speed_df = calc_avg_article_speed(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
+    #sum_cspeed_df = calc_sum_article_cspeed(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
+    adjusted_time_df = calc_avg_article_adjusted_time(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
+    sum_cadj_time_df = calc_sum_article_cadjusted_time(time_filt_paths, count_cutoff=count_cutoff, scaling=scaling, consider_start=consider_start)
 
     # Combine click metrics into a composite DataFrame
     composite_df = pd.DataFrame(index=avg_weight_df.index)
@@ -50,17 +52,23 @@ def compute_scores_df(length_filt_finished_paths, length_filt_paths,
     print(f"Number of unique articles in click score df: {composite_df.shape[0]}")
 
     # Speed metrics
-    speed_df = pd.DataFrame(index=avg_speed_df.index)
-    speed_df['n_appearances'] = avg_speed_df['n_appearances']
-    speed_df['avg_speed'] = avg_speed_df['avg_speed']
-    speed_df['avg_speed_scaled'] = avg_speed_df[scaling]
+    speed_df = pd.DataFrame(index=adjusted_time_df.index)
+    speed_df['n_appearances'] = adjusted_time_df['n_appearances']
+    #speed_df['avg_speed'] = avg_speed_df['avg_speed']
+    #speed_df['avg_speed_scaled'] = avg_speed_df[scaling]
 
-    speed_df['sum_cspeed'] = sum_cspeed_df['sum_cspeed']
-    speed_df['sum_cspeed_scaled'] = sum_cspeed_df[scaling]
+    #speed_df['sum_cspeed'] = sum_cspeed_df['sum_cspeed']
+    #speed_df['sum_cspeed_scaled'] = sum_cspeed_df[scaling]
+
+    speed_df['avg_adj_time'] = adjusted_time_df['avg_adj_time']
+    speed_df['avg_adj_time_scaled'] = adjusted_time_df[scaling]
+
+    speed_df['sum_cadj_time'] = sum_cadj_time_df['sum_cadj_time']
+    speed_df['sum_cadj_time_scaled'] = sum_cadj_time_df[scaling]
 
     print(f"Number of unique articles in speed score df: {speed_df.shape[0]}")
 
-    return composite_df.sort_values(by='avg_weight', ascending=False), speed_df.sort_values(by='avg_speed', ascending=False)
+    return composite_df.sort_values(by='avg_weight', ascending=False), speed_df.sort_values(by='avg_adj_time', ascending=True)
 
 
 def calculate_composite_scores(composite_df):
