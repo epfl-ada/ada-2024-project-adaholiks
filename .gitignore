@@ -1,3 +1,8 @@
 /Data/*
 *.DS_Store
 *.pyc
+*.pkl
+*.jsonl
+*.keras
+*.jsonl
+logs*
