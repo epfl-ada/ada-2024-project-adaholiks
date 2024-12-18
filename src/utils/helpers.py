@@ -219,6 +219,82 @@ def plot_styled_bar_chart(
     # Show the plot
     plt.show()
 
+
+    import plotly.express as px
+import plotly.graph_objects as go
+
+def plot_attempt_duration(finished_paths):
+    # Filter the data for the relevant hashed IP addresses
+    filtered_data = finished_paths[
+        (finished_paths['identifier'] == 5634) &
+        (finished_paths['hashedIpAddress'].isin(['62d5c0be1ee5c287', '3c4bf61c4a447176']))
+    ].copy()
+
+    # Map hashed IP addresses to Player 1 and Player 2
+    ip_to_player = {
+        '62d5c0be1ee5c287': 'Player 2',
+        '3c4bf61c4a447176': 'Player 1'
+    }
+    filtered_data['Player'] = filtered_data['hashedIpAddress'].map(ip_to_player)
+
+    # Add an attempt number column (per player, ranked by timestamp)
+    filtered_data['attempt'] = filtered_data.groupby('Player').cumcount() + 1
+
+    # Find the path for each player (assuming 'simplified_path' is relevant)
+    path_player_1 = finished_paths[
+        (finished_paths['identifier'] == 5634) &
+        (finished_paths['hashedIpAddress'] == '3c4bf61c4a447176')
+    ].sort_values(by='durationInSec').head(1).sort_values(by='timestamp', ascending=False)['simplified_path'].iloc[0]
+
+    path_player_2 = finished_paths[
+        (finished_paths['identifier'] == 5634) &
+        (finished_paths['hashedIpAddress'] == '62d5c0be1ee5c287')
+    ].sort_values(by='durationInSec').head(1).sort_values(by='timestamp', ascending=False)['simplified_path'].iloc[0]   
+
+    # Create the interactive line plot
+    fig = px.line(
+        filtered_data,
+        x='attempt',
+        y='durationInSec',
+        color='Player',  # Use the new 'Player' column for legend
+        title='Players Race for Fastest Time on Path from Bird to Great_white_shark',
+        labels={'Player': 'Player', 'attempt': 'Attempt Number', 'durationInSec': 'Time (Seconds)'}
+    )
+
+    # Extract the colors that Plotly assigned to the players
+    player_1_color = fig.data[0].line.color  # Color of Player 1 (first entry in the plot)
+    player_2_color = fig.data[1].line.color  # Color of Player 2 (second entry in the plot)
+
+    # Add path annotations for both players
+    fig.add_annotation(
+        x=7, y=27.5, text="Path 1: "+str(path_player_1), showarrow=False,
+        font=dict(size=12, color=player_1_color),
+        align="left", xanchor="left", yanchor="top", row=1, col=1
+    )
+    fig.add_annotation(
+        x=7, y=25.5, text="Path 2: "+str(path_player_2), showarrow=False,
+        font=dict(size=12, color=player_2_color),
+        align="left", xanchor="left", yanchor="top", row=1, col=1
+    )
+
+    # Customize the plot
+    fig.update_traces(
+        mode="markers+lines",  # Add both markers and lines
+        hovertemplate=None  # Remove the default hovertemplate
+    )
+
+    # Set the y-axis range and allow points to go out of bounds
+    fig.update_layout(
+        xaxis_title='Attempt Number',
+        yaxis_title='Time (Seconds)',
+        yaxis=dict(range=[0, 30]),  # Limit the y-axis to 0-30
+        legend_title_text='Player',
+        hovermode='x',  # Allows hovering across data points to view details
+    )
+
+    # Show the plot
+    fig.show()
+
 # ----------------------------------------------------------------------------------------------------------
 # --------------------------- Plotting function for the scores ---------------------------------------------
 
