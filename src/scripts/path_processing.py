@@ -24,7 +24,7 @@ def filter_paths(paths_df, sampling_threshold=10,  multiplier=1.5, downsaple=Tru
     finished_paths = finished_paths[~(finished_paths['distance']== 0)]
 
     if downsaple:
-        # downsample the paths ()
+        # downsample the paths
         finished_paths_sampled, finished_num_removed = downsample_paths(finished_paths, threshold=sampling_threshold, seed=seed)
         unfinished_paths_sampled, unfinished_num_removed = downsample_paths(unfinished_paths, threshold=sampling_threshold, seed=seed)
     else:
