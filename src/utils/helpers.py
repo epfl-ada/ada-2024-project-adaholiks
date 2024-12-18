@@ -1,7 +1,9 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.decomposition import PCA
+import plotly.express as px
 
 
 # ----------------------------------------------------------------------------------------------------------
@@ -220,6 +222,7 @@ def plot_styled_bar_chart(
 # ----------------------------------------------------------------------------------------------------------
 # --------------------------- Plotting function for the scores ---------------------------------------------
 
+from matplotlib.colors import Normalize
 
 def plot_scaled_score_correlations(composite_df, 
                                    scaled_columns = ['weight_avg_scaled', 
@@ -248,6 +251,7 @@ def plot_scaled_score_correlations(composite_df,
     pairplot = sns.pairplot(composite_df_scaled, diag_kind='kde', plot_kws={'alpha': 0.5})
     
     return pairplot
+
 
 
 def perform_pca_and_plot(df, components=['weight_avg_scaled', 'detour_ratio_scaled'], biplot=False, title="PCA Analysis"):
@@ -307,6 +311,65 @@ def perform_pca_and_plot(df, components=['weight_avg_scaled', 'detour_ratio_scal
     plt.show()
 
     return pca, pca_components
+
+def interactive_scatter(df, x_col, y_col, count_col, use_log=True):
+    """
+    Creates an interactive scatter plot using Plotly, where hovering over points displays only their index,
+    and points are optionally colored based on a log-scaled count column.
+    
+    Parameters:
+        df (pd.DataFrame): The input DataFrame containing the data.
+        x_col (str): The name of the column to use for the x-axis.
+        y_col (str): The name of the column to use for the y-axis.
+        count_col (str): The name of the column to use for coloring the points (count data).
+        use_log (bool): Whether to apply log-scaling to the count column for coloring.
+    
+    Returns:
+        None (displays the interactive plot)
+    """
+    # Copy the dataframe to preserve the original
+    df_hover = df.copy()
+    
+    # Add index as a new column for hover data
+    df_hover['index'] = df.index.astype(str)  # Convert index to string for display
+    
+    # Apply log scaling to the count column if use_log is True
+    if use_log:
+        df_hover['count_scaled'] = np.log(df_hover[count_col])
+        color_label = f'Log-counts'
+    else:
+        df_hover['count_scaled'] = df_hover[count_col]
+        color_label = 'counts'
+    
+    # Create a scatter plot
+    fig = px.scatter(
+        df_hover, 
+        x=x_col, 
+        y=y_col, 
+        color='count_scaled',  # Use the (log-scaled or raw) count for coloring
+        hover_data={'index': True, count_col: True},  # Show the raw count value in hover
+        title=f'Scatter Plot of {y_col} vs {x_col}',
+        labels={x_col: x_col, y_col: y_col, 'count_scaled': color_label},
+        color_continuous_scale='viridis'  # Gradient color scale
+    )
+    
+    # Ensure hover tooltip shows only the desired info
+    fig.for_each_trace(lambda trace: trace.update(hovertemplate="%{customdata[0]}<extra></extra>"))
+    
+    # Set marker size and layout to make the plot square
+    fig.update_traces(marker=dict(size=10, opacity=0.8))
+    fig.update_layout(
+        title_x=0.5, 
+        template='plotly_white',
+        width=600,  # Set width for square plot
+        height=600,  # Set height for square plot
+    )
+    
+    fig.show()
+
+
+# ----------------------------------------------------------------------------------------------------------
+# --------------------------- Plotting functions for the articles ---------------------------------------------
 
 
 def plot_incoming_links(article_df, n=10):

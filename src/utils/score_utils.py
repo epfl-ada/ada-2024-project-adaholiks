@@ -607,148 +607,29 @@ def calc_sum_article_cadjusted_time(df, count_cutoff=30, scaling=None, consider_
     return csum_article_time_df  # Return the updated DataFrame
 
 # ------------------------------------------------
-# ------------------------------------------------
-# ------------------------------------------------
-# ------------------------------------------------
 
-# CAN PROB REMOVE THE BELOW FUNCTIONS
-
-
-def calculate_sum_article_cdiff(df, count_cutoff=30, scaling=None, consider_start=True):
+def binary_score(df, score_column, threshold):
     """
-    Calculate the sum of the centered weights of articles from a DataFrame containing path information.
-
+    Converts the specified score column of a DataFrame into binary scores based on the following:
+    - Scores greater than a positive threshold are mapped to 1.
+    - Scores less than a negative threshold are mapped to 0.
+    - Scores between -threshold and +threshold are removed (dropped).
+    
     Parameters:
-        df (pd.DataFrame): Input DataFrame with the following columns:
-            - 'simplified_path': List of articles in the path
-            - 'simplified_path_length': Length of the simplified path
-            - 'distance': Distance associated with the path
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None
-        count_cutoff (int): Minimum number of appearances for an article to be considered
-        consider_start (bool): if the start article should also receives a score 
-
+    - df (pd.DataFrame): The input DataFrame.
+    - score_column (str): The name of the score column to convert into binary.
+    - threshold (float): The threshold value for binary classification.
+    
     Returns:
-        pd.DataFrame: A DataFrame containing:
-            - 'article': Article name
-            - 'n_appearances': Number of times the article appeared in paths
-            - 'weighted_sum': sum of the centered path weights for the article
+    - pd.Series: A series of binary scores (1 or 0), with scores in the range (-threshold, threshold) removed.
     """
-    # Copy and preprocess the DataFrame
-    df = df[['simplified_path', 'simplified_path_length', 'distance']].copy()
-    # Calculate weight for each path
-    df['diff'] = df['simplified_path_length'] - df['distance']
+    # Apply binary classification and filter out scores between -threshold and threshold
+    binary_scores = df[score_column].apply(lambda x: 1 if x > threshold else (0 if x < -threshold else None))
+    
+    # Remove rows where the binary score is None (i.e., scores between -threshold and threshold)
+    df_filtered = df[binary_scores.notna()].copy()
 
-    if consider_start: 
-        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
-        # Calculate mean weight
-        article_mean_weight = (df['diff'] * (df['simplified_path_length'])).sum() / (df['simplified_path_length']).sum()
-    else: 
-        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article
-        # Calculate mean weight
-        article_mean_weight = (df['diff'] * (df['simplified_path_length'])-1).sum() / (df['simplified_path_length']-1).sum()
-
-    # Center the weights by subtracting the mean
-    df['centered_diff'] = df['diff'] - article_mean_weight
-
-    # Initialize an empty DataFrame to store results
-    sum_article_cweight_df = pd.DataFrame(columns=['article', 'n_appearances', 'weighted_sum'])
-    sum_article_cweight_df.set_index('article', inplace=True)
-
-    # Iterate through each row to calculate article sum of centered weights
-    for _, row in df.iterrows():
-        cdiff = row['centered_diff']
-        simplified_path = row['simplified_path']
-
-        for article in simplified_path:
-            if article not in sum_article_cweight_df.index:
-                sum_article_cweight_df.loc[article] = [0, 0.0]
-
-            # Update counts and weighted sums
-            sum_article_cweight_df.at[article, 'n_appearances'] += 1
-            sum_article_cweight_df.at[article, 'weighted_sum'] += cdiff
-
-    # Filter out articles that appear less than the cutoff
-    sum_article_cweight_df = sum_article_cweight_df[sum_article_cweight_df['n_appearances'] >= count_cutoff]
-
-    # Normalize the weighted average
-    if scaling is not None:
-
-        if scaling == 'minmax':
-            scaler = MinMaxScaler()
-        elif scaling == 'standard':
-            scaler = StandardScaler()
-
-        sum_article_cweight_df[scaling] = -scaler.fit_transform(sum_article_cweight_df[['weighted_sum']])
-
-
-    #print(f"Number of unique articles after weighting: {sum_article_cweight_df.shape[0]}")
-
-    return sum_article_cweight_df
-
-# ------------------------------------------------
-
-def calculate_avg_diff(paths_df, count_cutoff=30, scaling=None, consider_start=True):
-    """
-    Calculate the average weights of articles from a DataFrame containing path information.
-
-    Parameters:
-        df (pd.DataFrame): Input DataFrame with the following columns:
-            - 'simplified_path': List of articles in the path
-            - 'simplified_path_length': Length of the simplified path
-            - 'distance': Distance associated with the path
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None
-        count_cutoff (int): Minimum number of appearances for an article to be considered
-        consider_start (bool): if the start article should also receives a score 
-
-    Returns:
-        pd.DataFrame: A DataFrame containing:
-            - 'article': Article name
-            - 'n_appearances': Number of times the article appeared in paths
-            - 'weighted_avg': Weighted average of distances for the article
-    """
-    # Copy and preprocess the DataFrame
-    df = paths_df[['simplified_path', 'simplified_path_length', 'distance']].copy()
-
-    if consider_start: 
-        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
-    else: 
-        df['simplified_path'] = df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article
-
-    # Calculate weight for each path
-    df['diff'] = df['simplified_path_length'] - df['distance']
-
-    # Initialize an empty DataFrame to store results
-    avg_article_weight_df = pd.DataFrame(columns=['article', 'n_appearances', 'avg_diff'])
-    avg_article_weight_df.set_index('article', inplace=True)
-
-    # Iterate through each row to calculate weights
-    for _, row in df.iterrows():
-        diff = row['diff']
-        simplified_path = row['simplified_path']
-
-        for article in simplified_path:
-            if article not in avg_article_weight_df.index:
-                avg_article_weight_df.loc[article] = [0, 0.0]
-
-            # Update counts and weighted sums
-            avg_article_weight_df.at[article, 'n_appearances'] += 1
-            avg_article_weight_df.at[article, 'avg_diff'] += diff
-
-    # Calculate the weighted average by dividing weighted sum by counts
-    avg_article_weight_df['avg_diff'] = avg_article_weight_df['avg_diff'] / avg_article_weight_df['n_appearances']
-
-    # Filter out articles that appear less than the cutoff
-    avg_article_weight_df = avg_article_weight_df[avg_article_weight_df['n_appearances'] >= count_cutoff]
-
-    # Normalize the weighted average
-    if scaling is not None:
-        if scaling == 'minmax':
-            scaler = MinMaxScaler()
-        elif scaling == 'standard':
-            scaler = StandardScaler()
-
-        avg_article_weight_df[scaling] = -scaler.fit_transform(avg_article_weight_df[['avg_diff']])
-
-    #print(f"Number of unique articles after weighting: {avg_article_weight_df.shape[0]}")
-
-    return avg_article_weight_df
+    # Return the binary scores (as a Series), aligned with the filtered DataFrame
+    df_filtered['binary_score'] = binary_scores.dropna().values
+    
+    return df_filtered['binary_score']

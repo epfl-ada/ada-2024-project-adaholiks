@@ -136,3 +136,25 @@ def calculate_composite_scores(composite_df):
         quality_scores_clicks.sort_values(by='composite_3', ascending=False),
         utility_scores_clicks.sort_values(by='composite_3', ascending=False)
 )
+
+def compute_binary_scores(quality_scores_clicks, utility_scores_clicks, time_scores, threshold=1):
+    """
+    Computes binary scores based on thresholding for quality and utility scores.
+
+    Parameters:
+        quality_scores_clicks (pd.DataFrame): DataFrame containing quality scores.
+        utility_scores_clicks (pd.DataFrame): DataFrame containing utility scores.
+        threshold (float): Threshold for binary classification. Default is 0.5.
+
+    Returns:
+        tuple: Two DataFrames (quality_binary, utility_binary) with binary scores.
+    """
+    quality_binary = binary_score(quality_scores_clicks, 'composite_3', threshold=threshold)
+    utility_binary = binary_score(utility_scores_clicks, 'composite_3', threshold=threshold)
+
+    avg_time_binary = binary_score(time_scores, 'avg_adj_time_scaled', threshold=threshold)
+    csum_time_binary = binary_score(time_scores, 'sum_cadj_time_scaled', threshold=threshold)
+
+    # Return binary DataFrames
+    return quality_binary, utility_binary, avg_time_binary, csum_time_binary
+
