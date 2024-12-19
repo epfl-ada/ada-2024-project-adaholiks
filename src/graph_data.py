@@ -30,30 +30,30 @@ for article_name, article_obj in articles.items():
 
 # Now G is the NetworkX graph with articles as nodes and links as edges
 
-# Example: print nodes and edges
-# print("Nodes in the graph:")
-# print(G.nodes(data=True))
+# # Example: print nodes and edges
+# # print("Nodes in the graph:")
+# # print(G.nodes(data=True))
 
-# print("\nEdges in the graph:")
-# print(G.edges())
+# # print("\nEdges in the graph:")
+# # print(G.edges())
 
 
-# Choose a layout for the graph (spring layout is often a good default)
-#pos = nx.spring_layout(G, k=0.15, iterations=20)
+# # Choose a layout for the graph (spring layout is often a good default)
+# #pos = nx.spring_layout(G, k=0.15, iterations=20)
 
-# Create the figure and plot the graph
-#plt.figure(figsize=(12, 12))  # Adjust the figure size based on the graph size
+# # Create the figure and plot the graph
+# #plt.figure(figsize=(12, 12))  # Adjust the figure size based on the graph size
 
-# Draw the nodes with labels and edges
-#nx.draw(G, pos, with_labels=False, node_size=50, node_color="skyblue", font_size=8, font_weight="bold", edge_color="gray")
+# # Draw the nodes with labels and edges
+# #nx.draw(G, pos, with_labels=False, node_size=50, node_color="skyblue", font_size=8, font_weight="bold", edge_color="gray")
 
-# Display the graph
-#plt.show()
+# # Display the graph
+# #plt.show()
 
-# Here we can uncomment this to get an interactive graph of the network
+# # Here we can uncomment this to get an interactive graph of the network
 
-#net = Network(notebook=True, cdn_resources='remote', height="750px", width="100%")
-#print("created network")
-#net.from_nx(G)  # Load NetworkX graph into pyvis
-#print("loaded graph")
-#net.show("graph.html")  # This will open a zoomable, interactive graph in your browser
+# #net = Network(notebook=True, cdn_resources='remote', height="750px", width="100%")
+# #print("created network")
+# #net.from_nx(G)  # Load NetworkX graph into pyvis
+# #print("loaded graph")
+# #net.show("graph.html")  # This will open a zoomable, interactive graph in your browser

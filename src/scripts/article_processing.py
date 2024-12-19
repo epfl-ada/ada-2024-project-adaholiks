@@ -91,9 +91,9 @@ def add_average_cosine_distance(article_df, embeddings):
     return article_df
 
 
-import numpy as np
-import pandas as pd
-from scipy.spatial.distance import cosine
+# import numpy as np
+# import pandas as pd
+# from scipy.spatial.distance import cosine
 
 def add_average_extreme_cosine_distances(article_df, embeddings, n=5):
     """
@@ -159,6 +159,7 @@ def add_average_extreme_cosine_distances(article_df, embeddings, n=5):
     article_df['average_min_cosine_distance'] = avg_min_distances
 
     return article_df
+
 
 
 def add_vocabulary_richness(article_df):
