@@ -219,6 +219,82 @@ def plot_styled_bar_chart(
     # Show the plot
     plt.show()
 
+
+    import plotly.express as px
+import plotly.graph_objects as go
+
+def plot_race(finished_paths):
+    # Filter the data for the relevant hashed IP addresses
+    filtered_data = finished_paths[
+        (finished_paths['identifier'] == 5634) &
+        (finished_paths['hashedIpAddress'].isin(['62d5c0be1ee5c287', '3c4bf61c4a447176']))
+    ].copy()
+
+    # Map hashed IP addresses to Player 1 and Player 2
+    ip_to_player = {
+        '62d5c0be1ee5c287': 'Player 2',
+        '3c4bf61c4a447176': 'Player 1'
+    }
+    filtered_data['Player'] = filtered_data['hashedIpAddress'].map(ip_to_player)
+
+    # Add an attempt number column (per player, ranked by timestamp)
+    filtered_data['attempt'] = filtered_data.groupby('Player').cumcount() + 1
+
+    # Find the path for each player (assuming 'simplified_path' is relevant)
+    path_player_1 = finished_paths[
+        (finished_paths['identifier'] == 5634) &
+        (finished_paths['hashedIpAddress'] == '3c4bf61c4a447176')
+    ].sort_values(by='durationInSec').head(1).sort_values(by='timestamp', ascending=False)['simplified_path'].iloc[0]
+
+    path_player_2 = finished_paths[
+        (finished_paths['identifier'] == 5634) &
+        (finished_paths['hashedIpAddress'] == '62d5c0be1ee5c287')
+    ].sort_values(by='durationInSec').head(1).sort_values(by='timestamp', ascending=False)['simplified_path'].iloc[0]   
+
+    # Create the interactive line plot
+    fig = px.line(
+        filtered_data,
+        x='attempt',
+        y='durationInSec',
+        color='Player',  # Use the new 'Player' column for legend
+        title='Players Race for Fastest Time on Path from Bird to Great_white_shark',
+        labels={'Player': 'Player', 'attempt': 'Attempt Number', 'durationInSec': 'Time (Seconds)'}
+    )
+
+    # Extract the colors that Plotly assigned to the players
+    player_1_color = fig.data[0].line.color  # Color of Player 1 (first entry in the plot)
+    player_2_color = fig.data[1].line.color  # Color of Player 2 (second entry in the plot)
+
+    # Add path annotations for both players
+    fig.add_annotation(
+        x=7, y=27.5, text="Path 1: "+str(path_player_1), showarrow=False,
+        font=dict(size=12, color=player_1_color),
+        align="left", xanchor="left", yanchor="top", row=1, col=1
+    )
+    fig.add_annotation(
+        x=7, y=25.5, text="Path 2: "+str(path_player_2), showarrow=False,
+        font=dict(size=12, color=player_2_color),
+        align="left", xanchor="left", yanchor="top", row=1, col=1
+    )
+
+    # Customize the plot
+    fig.update_traces(
+        mode="markers+lines",  # Add both markers and lines
+        hovertemplate=None  # Remove the default hovertemplate
+    )
+
+    # Set the y-axis range and allow points to go out of bounds
+    fig.update_layout(
+        xaxis_title='Attempt Number',
+        yaxis_title='Time (Seconds)',
+        yaxis=dict(range=[0, 30]),  # Limit the y-axis to 0-30
+        legend_title_text='Player',
+        hovermode='x',  # Allows hovering across data points to view details
+    )
+
+    # Show the plot
+    fig.show()
+
 # ----------------------------------------------------------------------------------------------------------
 # --------------------------- Plotting function for the scores ---------------------------------------------
 
@@ -367,6 +443,91 @@ def interactive_scatter(df, x_col, y_col, count_col, use_log=True):
     
     fig.show()
 
+
+def create_vertical_table_layout(quality_scores_clicks, utility_scores_clicks, time_scores, title):
+    """
+    Creates a vertical layout of tables with given DataFrames and a main title.
+    
+    Parameters:
+        quality_scores_clicks (pd.DataFrame): DataFrame for quality scores.
+        utility_scores_clicks (pd.DataFrame): DataFrame for utility scores.
+        time_scores (pd.DataFrame): DataFrame for time scores.
+        title (str): The main title for the entire plot.
+        
+    Returns:
+        go.Figure: Plotly figure with the vertically stacked tables.
+    """
+    # Selecting required data and including indexes as a column
+    table1 = quality_scores_clicks[['n_appearances', 'composite_3']].head(5).round(2).reset_index()
+    table2 = utility_scores_clicks[['n_appearances', 'composite_3']].head(5).round(2).reset_index()
+    table3 = time_scores[['n_appearances', 'avg_adj_time_scaled']].head(5).round(2).reset_index()
+    table4 = time_scores[['n_appearances', 'sum_cadj_time_scaled']].sort_values(by='sum_cadj_time_scaled', ascending=False).head(5).round(2).reset_index()
+
+    # Create tables using Plotly
+    fig = go.Figure()
+
+    # Add Table 1
+    fig.add_trace(go.Table(
+        header=dict(values=["Article"] + list(table1.columns[1:]),  # Include index column
+                    fill_color='lightblue',
+                    align='left'),
+        cells=dict(values=[table1[col] for col in table1.columns],
+                   fill_color='white',
+                   align='left'),
+        domain=dict(x=[0, 1], y=[0.75, 1]),
+        name='Quality Scores Clicks'
+    ))
+
+    # Add Table 2
+    fig.add_trace(go.Table(
+        header=dict(values=["Article"] + list(table2.columns[1:]),
+                    fill_color='lightgreen',
+                    align='left'),
+        cells=dict(values=[table2[col] for col in table2.columns],
+                   fill_color='white',
+                   align='left'),
+        domain=dict(x=[0, 1], y=[0.5, 0.75]),
+        name='Utility Scores Clicks'
+    ))
+
+    # Add Table 3
+    fig.add_trace(go.Table(
+        header=dict(values=["Article"] + list(table3.columns[1:]),
+                    fill_color='lightcoral',
+                    align='left'),
+        cells=dict(values=[table3[col] for col in table3.columns],
+                   fill_color='white',
+                   align='left'),
+        domain=dict(x=[0, 1], y=[0.25, 0.5]),
+        name='Average Adjusted Time Scores'
+    ))
+
+    # Add Table 4
+    fig.add_trace(go.Table(
+        header=dict(values=["Article"] + list(table4.columns[1:]),
+                    fill_color='lightsalmon',
+                    align='left'),
+        cells=dict(values=[table4[col] for col in table4.columns],
+                   fill_color='white',
+                   align='left'),
+        domain=dict(x=[0, 1], y=[0, 0.25]),
+        name='Sum of Centered Adjusted Time Scores'
+    ))
+
+    # Add subtitles using annotations
+    fig.update_layout(
+        annotations=[
+            dict(text="Quality Scores Clicks", x=0.5, y=1.03, showarrow=False, font=dict(size=14)),
+            dict(text="Utility Scores Clicks", x=0.5, y=0.78, showarrow=False, font=dict(size=14)),
+            dict(text="Time Scores (Average Adjusted Time)", x=0.5, y=0.52, showarrow=False, font=dict(size=14)),
+            dict(text="Time Scores (Sum Adjusted Time)", x=0.5, y=0.25, showarrow=False, font=dict(size=14)),
+        ],
+        title=title,
+        margin=dict(l=20, r=20, t=60, b=20),
+        height=800  # Increased height for vertical layout
+    )
+
+    fig.show()
 
 # ----------------------------------------------------------------------------------------------------------
 # --------------------------- Plotting functions for the articles ---------------------------------------------

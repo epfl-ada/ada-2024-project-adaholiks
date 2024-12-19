@@ -561,17 +561,19 @@ def calc_sum_article_cadjusted_time(df, count_cutoff=30, scaling=None, consider_
         if row['simplified_path_length'] != row['full_path_length']:
             row['scaled_duration'] = row['scaled_duration'] * row['simplified_path_length'] / row['full_path_length']
 
-    # Calculate the mean scaled duration (excluting the last article in the path)
-    article_mean_scaled_duration = (time_df['scaled_duration'] * (time_df['simplified_path_length'])).sum() / (time_df['simplified_path_length']).sum()
-
-    # Center the speeds by subtracting the mean
-    time_df['centered_duration'] = time_df['scaled_duration'] - article_mean_scaled_duration
-
     # Remove the start and end articles from the simplified path
     if consider_start: 
         time_df['simplified_path'] = time_df['simplified_path'].apply(lambda l: l[:-1])  # Remove end articles
+        # Calculate the mean scaled duration (excluting the last article in the path)
+        article_mean_scaled_duration = (time_df['scaled_duration'] * (time_df['simplified_path_length'])).sum() / (time_df['simplified_path_length']).sum()
+        # Center the speeds by subtracting the mean
+        time_df['centered_duration'] = time_df['scaled_duration'] - article_mean_scaled_duration
     else: 
         time_df['simplified_path'] = time_df['simplified_path'].apply(lambda l: l[1:-1]) # Remove start and end article
+        # Calculate the mean scaled duration (excluting the last article in the path)
+        article_mean_scaled_duration = (time_df['scaled_duration'] * (time_df['simplified_path_length']-1)).sum() / (time_df['simplified_path_length']-1).sum()
+        # Center the speeds by subtracting the mean
+        time_df['centered_duration'] = time_df['scaled_duration'] - article_mean_scaled_duration
 
     # Initialize an empty DataFrame to store results
     csum_article_time_df = pd.DataFrame(columns=['n_appearances', 'sum_cadj_time'], index=pd.Index([], name='article'))
