@@ -444,6 +444,91 @@ def interactive_scatter(df, x_col, y_col, count_col, use_log=True):
     fig.show()
 
 
+def create_vertical_table_layout(quality_scores_clicks, utility_scores_clicks, time_scores, title):
+    """
+    Creates a vertical layout of tables with given DataFrames and a main title.
+    
+    Parameters:
+        quality_scores_clicks (pd.DataFrame): DataFrame for quality scores.
+        utility_scores_clicks (pd.DataFrame): DataFrame for utility scores.
+        time_scores (pd.DataFrame): DataFrame for time scores.
+        title (str): The main title for the entire plot.
+        
+    Returns:
+        go.Figure: Plotly figure with the vertically stacked tables.
+    """
+    # Selecting required data and including indexes as a column
+    table1 = quality_scores_clicks[['n_appearances', 'composite_3']].head(5).round(2).reset_index()
+    table2 = utility_scores_clicks[['n_appearances', 'composite_3']].head(5).round(2).reset_index()
+    table3 = time_scores[['n_appearances', 'avg_adj_time_scaled']].head(5).round(2).reset_index()
+    table4 = time_scores[['n_appearances', 'sum_cadj_time_scaled']].sort_values(by='sum_cadj_time_scaled', ascending=False).head(5).round(2).reset_index()
+
+    # Create tables using Plotly
+    fig = go.Figure()
+
+    # Add Table 1
+    fig.add_trace(go.Table(
+        header=dict(values=["Article"] + list(table1.columns[1:]),  # Include index column
+                    fill_color='lightblue',
+                    align='left'),
+        cells=dict(values=[table1[col] for col in table1.columns],
+                   fill_color='white',
+                   align='left'),
+        domain=dict(x=[0, 1], y=[0.75, 1]),
+        name='Quality Scores Clicks'
+    ))
+
+    # Add Table 2
+    fig.add_trace(go.Table(
+        header=dict(values=["Article"] + list(table2.columns[1:]),
+                    fill_color='lightgreen',
+                    align='left'),
+        cells=dict(values=[table2[col] for col in table2.columns],
+                   fill_color='white',
+                   align='left'),
+        domain=dict(x=[0, 1], y=[0.5, 0.75]),
+        name='Utility Scores Clicks'
+    ))
+
+    # Add Table 3
+    fig.add_trace(go.Table(
+        header=dict(values=["Article"] + list(table3.columns[1:]),
+                    fill_color='lightcoral',
+                    align='left'),
+        cells=dict(values=[table3[col] for col in table3.columns],
+                   fill_color='white',
+                   align='left'),
+        domain=dict(x=[0, 1], y=[0.25, 0.5]),
+        name='Average Adjusted Time Scores'
+    ))
+
+    # Add Table 4
+    fig.add_trace(go.Table(
+        header=dict(values=["Article"] + list(table4.columns[1:]),
+                    fill_color='lightsalmon',
+                    align='left'),
+        cells=dict(values=[table4[col] for col in table4.columns],
+                   fill_color='white',
+                   align='left'),
+        domain=dict(x=[0, 1], y=[0, 0.25]),
+        name='Sum of Centered Adjusted Time Scores'
+    ))
+
+    # Add subtitles using annotations
+    fig.update_layout(
+        annotations=[
+            dict(text="Quality Scores Clicks", x=0.5, y=1.03, showarrow=False, font=dict(size=14)),
+            dict(text="Utility Scores Clicks", x=0.5, y=0.78, showarrow=False, font=dict(size=14)),
+            dict(text="Time Scores (Average Adjusted Time)", x=0.5, y=0.52, showarrow=False, font=dict(size=14)),
+            dict(text="Time Scores (Sum Adjusted Time)", x=0.5, y=0.25, showarrow=False, font=dict(size=14)),
+        ],
+        title=title,
+        margin=dict(l=20, r=20, t=60, b=20),
+        height=800  # Increased height for vertical layout
+    )
+
+    fig.show()
+
 # ----------------------------------------------------------------------------------------------------------
 # --------------------------- Plotting functions for the articles ---------------------------------------------
 
