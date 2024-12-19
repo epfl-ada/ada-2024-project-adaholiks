@@ -223,7 +223,7 @@ def plot_styled_bar_chart(
     import plotly.express as px
 import plotly.graph_objects as go
 
-def plot_attempt_duration(finished_paths):
+def plot_race(finished_paths):
     # Filter the data for the relevant hashed IP addresses
     filtered_data = finished_paths[
         (finished_paths['identifier'] == 5634) &
