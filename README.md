@@ -44,10 +44,10 @@ To refine the analysis, we add:
 
 #### **3. Composite Scoring Function**
 We combine the above metrics using:
-\[
-\text{Score} = w_1 \times \text{Path Length Ratio} - w_2 \times \text{Unfinished Ratio} - w_3 \times \text{Detour Ratio}
-\]  
-Weights (\(w_1, w_2, w_3\)) are defined heuristically based on their impact.
+
+composite score function : w1*path_length_ratio - w2*unfinished_ratio - w3*detour_ratio.
+
+Weights w1, w2, and w3 are defined heuristically.
 
 #### **4. Speed-Based Scores**
 Finally, we reward articles frequently appearing in paths completed quickly to account for the speed aspect of "Wikispeedia."
