@@ -45,6 +45,24 @@ Thus far, we have only really considered one aspect of the paths in order to def
 ### Part 4 - Analysis of the Results Found and Correlation with Attributes
 Extracted attributes from part 2 such as incoming links, outgoing links, article length, and hyperlink density can be taken into account and correlated with our article rankings from part 3. Other attributes such as category centrality, position of hyperlinks, and semantic distance can also be extracted and correlated with path success metrics.
 
+
+### Part 4a - Bot Generated Paths and Correlation with Attributes
+After being unsatisfied with the low correlation between our attributes and extracted scores, we decided to create new paths according to a single Wikispeedia strategy.
+
+Let's use the embeddings from our data analysis to help us define a greedy walk of the wikispeedia graph.
+
+```
+    For each start, end in paths:
+    current_article = start
+    while current_article != end:
+        Out of the possible next articles, choose the article that satisfies the following conditions:
+            1. we have not visited
+            2. has the smallest cosine distance to the end of the path
+        If no articles satisfy this, discard the path.
+```
+
+In the end, it turned out that the sum of centered weights and average weight scores computed from these "greedy" paths were useful. Our attributes correlated more closely with these paths than with the generalized player paths. From this we were able to extract the understanding that there *is no such thing as a good article* in a general sense. What makes an article *good* or *bad* depends on a player's strategy. The generalized human-created paths have paths created by many different archetypes of players, so it is no wonder our attributes were not able to correlate closely with the scores extracted from those paths.
+
 ### Part 5 - Machine Learning Approach
 It is then possible to do a more sophisticated quantification of the different attributes using machine learning. Labels are the computed article scores and are predicted using the article attributes. We will start by implementing a simple linear regression model. Depending on the findings, we will potentially consider more complex supervised models.
 
