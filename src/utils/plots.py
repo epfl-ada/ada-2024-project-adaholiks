@@ -592,6 +592,48 @@ def plot_correlations(correlations):
     plt.tight_layout()
     plt.show()
 
+def plot_graph_metric(article_df, metric_column, top_n=10):
+
+    # Ensure the column exists
+    if metric_column not in article_df.columns:
+        raise ValueError(f"The column '{metric_column}' is missing from the DataFrame. Please compute it first.")
+
+    # Drop NaN values for the specified metric column
+    valid_data = article_df.dropna(subset=[metric_column])
+
+    # Summary statistics
+    print(f"Summary statistics for {metric_column}:")
+    print(valid_data[metric_column].describe())
+
+    # Sort and select top n articles by the given metric
+    top_n_articles = article_df.nlargest(top_n, metric_column)
+
+    # Create a figure with two subplots: one for the top articles, one for the distribution
+    fig, axes = plt.subplots(1, 3, figsize=(16, 6))
+
+    # Bar plot of top n articles
+    sns.barplot(data=top_n_articles, x='article', y=metric_column, ax=axes[0])
+    axes[0].set_title(f"Top {top_n} Articles by {metric_column}")
+    axes[0].set_xlabel("Article")
+    axes[0].set_ylabel(metric_column)
+    axes[0].tick_params(axis='x', rotation=45)
+
+    # Distribution plot
+    sns.histplot(article_df[metric_column], kde=True, bins=30, ax=axes[1])
+    axes[1].set_title(f"Distribution of {metric_column}")
+    axes[1].set_xlabel(metric_column)
+    axes[1].set_ylabel("Frequency")
+
+    # Distribution plot log scale
+    sns.histplot(article_df[metric_column], kde=True, bins=30, log_scale=(True, False), ax=axes[2])
+    axes[2].set_title(f"Distribution of {metric_column}")
+    axes[2].set_xlabel(metric_column)
+    axes[2].set_ylabel("Frequency")
+
+
+
+    plt.tight_layout()
+    plt.show()
 
 
 
