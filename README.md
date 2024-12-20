@@ -1,6 +1,6 @@
 # The Good, the Bad, and the Ugly: The Impact of Articles on Wikispeedia Path Success
 
-Our data story can be found on [Adaholiks Website](https://adaholiks-are.onthewifi.com)!
+Our data story can be found on the official [Adaholiks Website](https://adaholiks-are.onthewifi.com)!
 
 ## Abstract
 
