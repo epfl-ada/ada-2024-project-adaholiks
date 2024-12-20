@@ -53,16 +53,16 @@ Weights w1, w2, and w3 are defined heuristically.
 Finally, we reward articles frequently appearing in paths completed quickly to account for the speed aspect of "Wikispeedia."
 
 This scoring framework provides a nuanced understanding of article importance in gameplay.
-
   
 ### Part 3 - Graph Theory-Based Top Articles
-In this phase, we identify the theoretically "best" articles in the network using principles in graph theory. We define a "good" article as one that frequently appears in the shortest paths between any given source-target pair. To do this, we calculate the frequency of each article's appearance across all shortest paths for each possible source-target pair played in the game. By doing this we obtain a list of theoretically good articles that are good for navigating through the network. We have also divided this count by the total number of shortest paths for each source-target pair. This normalization helps us measure the true importance of each article in the network. Without normalization, an article that appears in every shortest path for a specific source-target pair might seem highly important, even if it doesn’t play a critical role across the entire network. By normalizing, we avoid overemphasizing articles that are only crucial within specific source-target pairs and ensure that the count more accurately reflects an article’s overall significance in the network.
+In this phase, we identify the theoretically "best" articles in the network using principles in graph theory, this allows to get a comparison to the computed scores from the previous part. We define a "good" article as one that frequently appears in the shortest paths between any given source-target pair. To do this, we calculate the frequency of each article's appearance across all shortest paths for each possible source-target pair played in the game. By doing this we obtain a list of theoretically good articles that are good for navigating through the network. We have also divided this count by the total number of shortest paths for each source-target pair. This normalization helps us measure the true importance of each article in the network. Without normalization, an article that appears in every shortest path for a specific source-target pair might seem highly important, even if it doesn’t play a critical role across the entire network. By normalizing, we avoid overemphasizing articles that are only crucial within specific source-target pairs and ensure that the count more accurately reflects an article’s overall significance in the network.
 
-### Part 4 - Analysis of the Results Found and Correlation with Attributes
-Extracted attributes from part 2 such as incoming links, outgoing links, article length, and hyperlink density can be taken into account and correlated with our article rankings from part 3. Other attributes such as category centrality, position of hyperlinks, and semantic distance can also be extracted and correlated with path success metrics.
+### Part 4 - Attribute-Scoe Correlation Analysis
+
+We analyze the relationship between extracted attributes (e.g., incoming links, outgoing links, article length, and hyperlink density) and the computed scores from Part 2, focusing separately on path length and path speed. Additional attributes, such as category centrality, hyperlink positions, and semantic distance, are also examined for their potential correlations with path scores. This comprehensive analysis aims to uncover key factors influencing article performance in navigation tasks.
 
 
-### Part 4a - Bot Generated Paths and Correlation with Attributes
+### Part 5 - Bot Generated Paths and Correlation with Attributes
 After being unsatisfied with the low correlation between our attributes and extracted scores, we decided to create new paths according to a single Wikispeedia strategy.
 
 Let's use the embeddings from our data analysis to help us define a greedy walk of the wikispeedia graph.
@@ -79,7 +79,7 @@ Let's use the embeddings from our data analysis to help us define a greedy walk 
 
 In the end, it turned out that the sum of centered weights and average weight scores computed from these "greedy" paths were useful. Our attributes correlated more closely with these paths than with the generalized player paths. From this we were able to extract the understanding that there *is no such thing as a good article* in a general sense. What makes an article *good* or *bad* depends on a player's strategy. The generalized human-created paths have paths created by many different archetypes of players, so it is no wonder our attributes were not able to correlate closely with the scores extracted from those paths.
 
-### Part 5 - Machine Learning Approach
+### Part 6 - Machine Learning Approach
 In P2 we discussed possible Machine Learning approaches. These were attempted, but showed no significant results. We detail one of those implementations at the end of the P3 Notebook. The lack of significant results is unsurprising given the low correlation values of our attributes with scores extracted from human path data.
 
 ## Team Organization
