@@ -57,148 +57,6 @@ def get_distance(article1, article2, index_lookup, distance_matrix):
 
 
 
-
-def calculate_avg_article_weights_greedy(paths_df, count_cutoff=30, scaling=None, consider_start=True):
-    """
-    Calculate the average weights of articles from a DataFrame containing path information.
-
-    Parameters:
-        df (pd.DataFrame): Input DataFrame with the following columns:
-            - 'path': List of articles in the path
-            - 'path_lengths': Length of the simplified path
-            - 'distance': Distance associated with the path
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None
-        count_cutoff (int): Minimum number of appearances for an article to be considered
-        consider_start (bool): if the start article should also receives a score 
-
-    Returns:
-        pd.DataFrame: A DataFrame containing:
-            - 'article': Article name
-            - 'n_appearances': Number of times the article appeared in paths
-            - 'weighted_avg': Weighted average of distances for the article
-    """
-    # Copy and preprocess the DataFrame
-    df = paths_df[['path', 'path_lengths', 'distance']].copy()
-
-    if consider_start: 
-        df['path'] = df['path'].apply(lambda l: l[:-1])  # Remove end articles
-    else: 
-        df['path'] = df['path'].apply(lambda l: l[1:-1]) # Remove start and end article
-
-    # Calculate weight for each path
-    df['weight'] = df['distance'] / df['path_lengths']
-
-    # Initialize an empty DataFrame to store results
-    avg_article_weight_df = pd.DataFrame(columns=['article', 'n_appearances', 'weighted_avg'])
-    avg_article_weight_df.set_index('article', inplace=True)
-
-    # Iterate through each row to calculate weights
-    for _, row in df.iterrows():
-        weight = row['weight']
-        simplified_path = row['path']
-
-        for article in simplified_path:
-            if article not in avg_article_weight_df.index:
-                avg_article_weight_df.loc[article] = [0, 0.0]
-
-            # Update counts and weighted sums
-            avg_article_weight_df.at[article, 'n_appearances'] += 1
-            avg_article_weight_df.at[article, 'weighted_avg'] += weight
-
-    # Calculate the weighted average by dividing weighted sum by counts
-    avg_article_weight_df['weighted_avg'] = avg_article_weight_df['weighted_avg'] / avg_article_weight_df['n_appearances']
-
-    # Filter out articles that appear less than the cutoff
-    avg_article_weight_df = avg_article_weight_df[avg_article_weight_df['n_appearances'] >= count_cutoff]
-
-    # Normalize the weighted average
-    if scaling is not None:
-
-        if scaling == 'minmax':
-            scaler = MinMaxScaler()
-        elif scaling == 'standard':
-            scaler = StandardScaler()
-
-        avg_article_weight_df[scaling] = scaler.fit_transform(avg_article_weight_df[['weighted_avg']])
-
-    #print(f"Number of unique articles after weighting: {avg_article_weight_df.shape[0]}")
-
-    return avg_article_weight_df
-
-
-
-def calculate_sum_article_cweights_greedy(df, count_cutoff=30, scaling=None, consider_start=True):
-    """
-    Calculate the sum of the centered weights of articles from a DataFrame containing path information.
-
-    Parameters:
-        df (pd.DataFrame): Input DataFrame with the following columns:
-            - 'path': List of articles in the path
-            - 'path_lengths': Length of the simplified path
-            - 'distance': Distance associated with the path
-        scaling (str): Type of scaling to use. Options are 'minmax', 'standard', or None
-        count_cutoff (int): Minimum number of appearances for an article to be considered
-        consider_start (bool): if the start article should also receives a score 
-
-    Returns:
-        pd.DataFrame: A DataFrame containing:
-            - 'article': Article name
-            - 'n_appearances': Number of times the article appeared in paths
-            - 'weighted_sum': sum of the centered path weights for the article
-    """
-    # Copy and preprocess the DataFrame
-    df = df[['path', 'path_lengths', 'distance']].copy()
-    # Calculate weight for each path
-    df['weight'] = df['distance'] / df['path_lengths']
-
-    if consider_start: 
-        df['path'] = df['path'].apply(lambda l: l[:-1])  # Remove end articles
-        # Calculate mean weight
-        article_mean_weight = (df['weight'] * (df['path_lengths'])).sum() / (df['path_lengths']).sum()
-    else: 
-        df['path'] = df['path'].apply(lambda l: l[1:-1]) # Remove start and end article
-        # Calculate mean weight
-        article_mean_weight = (df['weight'] * (df['path_lengths'])-1).sum() / (df['path_lengths']-1).sum()
-
-    # Center the weights by subtracting the mean
-    df['centered_weight'] = df['weight'] - article_mean_weight
-
-    # Initialize an empty DataFrame to store results
-    sum_article_cweight_df = pd.DataFrame(columns=['article', 'n_appearances', 'weighted_sum'])
-    sum_article_cweight_df.set_index('article', inplace=True)
-
-    # Iterate through each row to calculate article sum of centered weights
-    for _, row in df.iterrows():
-        cweight = row['centered_weight']
-        simplified_path = row['path']
-
-        for article in simplified_path:
-            if article not in sum_article_cweight_df.index:
-                sum_article_cweight_df.loc[article] = [0, 0.0]
-
-            # Update counts and weighted sums
-            sum_article_cweight_df.at[article, 'n_appearances'] += 1
-            sum_article_cweight_df.at[article, 'weighted_sum'] += cweight
-
-    # Filter out articles that appear less than the cutoff
-    sum_article_cweight_df = sum_article_cweight_df[sum_article_cweight_df['n_appearances'] >= count_cutoff]
-
-    # Normalize the weighted average
-    if scaling is not None:
-
-        if scaling == 'minmax':
-            scaler = MinMaxScaler()
-        elif scaling == 'standard':
-            scaler = StandardScaler()
-
-        sum_article_cweight_df[scaling] = scaler.fit_transform(sum_article_cweight_df[['weighted_sum']])
-
-
-    #print(f"Number of unique articles after weighting: {sum_article_cweight_df.shape[0]}")
-
-    return sum_article_cweight_df
-
-
 ###  Play a list of paths with embedding lists. Get the DF
 def play_path_list(articles_df : pd.DataFrame, path_list: list[tuple]):
     # Placeholder for storing all paths
@@ -284,3 +142,82 @@ def filter_greedy_paths(greedy_embedding_paths : pd.DataFrame):
     IQR_filtered_greedy_paths, _ = IQR_filtering(downsampled_df, column='path_lengths')
 
     return IQR_filtered_greedy_paths
+
+def average_outgoing_cosine_distance(
+    articles_df: pd.DataFrame,
+    n: int = 5
+) -> pd.DataFrame:
+    """
+    Adds the average of the top n maximum and top n minimum cosine distances
+    from each article's embedding to its outgoing linked articles.
+
+    Parameters:
+    - articles_df (pd.DataFrame): DataFrame containing articles with an 'article' column.
+    - index_lookup (dict): Dictionary mapping article names to their indices in the distance_matrix.
+    - distance_matrix (np.ndarray): Precomputed cosine distance matrix.
+    - next_article_dict (dict): Adjacency dictionary mapping articles to their outgoing linked articles.
+    - n (int): Number of top maximum and minimum distances to average.
+
+    Returns:
+    - pd.DataFrame: Updated articles_df with 'average_max_cosine_distance' and 'average_min_cosine_distance' columns.
+    """
+    index_lookup, distance_matrix, next_article_dict, all_article_names = create_distance_matrix(articles_df)
+
+
+    # Initialize lists to store the average distances
+    avg_max_distances = []
+    avg_min_distances = []
+
+    # Iterate over each article with a progress bar for large datasets
+    for article in tqdm(articles_df['article'], desc="Calculating average distances"):
+        # Initialize list to hold distances for the current article
+        cosine_distances = []
+
+        # Retrieve outgoing articles; handle cases where the article might have no outgoing links
+        outgoing_articles = next_article_dict.get(article, [])
+
+        for outgoing_article in outgoing_articles:
+            # Retrieve indices; handle cases where the outgoing article might not be in index_lookup
+            idx_current = index_lookup.get(article, None)
+            idx_outgoing = index_lookup.get(outgoing_article, None)
+
+            if idx_current is None or idx_outgoing is None:
+                # Skip if either article is not found in the index_lookup
+                continue
+
+            # Retrieve the precomputed cosine distance
+            distance = distance_matrix[idx_current, idx_outgoing]
+            cosine_distances.append(distance)
+
+        if cosine_distances:
+            # Convert to NumPy array for efficient computation
+            distances_array = np.array(cosine_distances)
+
+            # Calculate the top n maximum distances
+            if len(distances_array) >= n:
+                max_distances = np.sort(distances_array)[-n:]
+            else:
+                max_distances = distances_array  # If fewer than n distances, take all
+
+            # Calculate the top n minimum distances
+            if len(distances_array) >= n:
+                min_distances = np.sort(distances_array)[:n]
+            else:
+                min_distances = distances_array  # If fewer than n distances, take all
+
+            # Compute the averages
+            avg_max = np.mean(max_distances)
+            avg_min = np.mean(min_distances)
+
+            avg_max_distances.append(avg_max)
+            avg_min_distances.append(avg_min)
+        else:
+            # Assign NaN if no distances are available
+            avg_max_distances.append(np.nan)
+            avg_min_distances.append(np.nan)
+
+    # Assign the computed averages to the DataFrame
+    articles_df['average_max_cosine_distance'] = avg_max_distances
+    articles_df['average_min_cosine_distance'] = avg_min_distances
+
+    return articles_df
