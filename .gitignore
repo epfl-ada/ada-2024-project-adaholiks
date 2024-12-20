@@ -1,4 +1,3 @@
-/Data/*
 *.DS_Store
 *.pyc
 *.pkl
@@ -6,3 +5,6 @@
 *.keras
 *.jsonl
 logs*
+*.feather
+*Data/plaintext_articles*/*
+*Data/wikispeedia_paths-and-graph*/*

@@ -2,6 +2,17 @@
 
 Our data story can be found on the official [Adaholiks Website](https://adaholiks-are.onthewifi.com)!
 
+## Data Setup
+All of the wikispeedia data must be placed and extracted in the `Data` direcory in the following fashion:
+```
+Data
+├── dataframes
+├── embeddings
+├── plaintext_articles
+├── wikispeedia_articles_plaintext.tar.gz
+├── wikispeedia_paths-and-graph
+└── wikispeedia_paths-and-graph.tar.gz
+```
 ## Abstract
 
 In an age of rapid information consumption, understanding how specific article characteristics influence navigation behavior in Wikispeedia can provide valuable insights into decision-making within hyperlinked environments. We hypothesize that a player's success in reaching target articles in Wikispeedia may be influenced by inherent article attributes, such as length, link density, and topic specificity. Our project aims to analyze how these attributes correlate with path success. First, we establish scores to quantify articles based on how effectively they help players navigate the network. This is done using both a theoretical approach and a player-centered perspective, resulting in article rankings. Next, we investigate which article characteristics contribute to player success by establishing statistically significant positive correlations with high-performing articles. These characteristics are then transformed into features that serve as inputs for supervised machine learning models, with the article score as the target variable. The goal is to uncover patterns that can enhance our understanding of strategic decision-making in web-based information pathways.
